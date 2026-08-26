@@ -397,7 +397,7 @@ function HomeView({ onNavigate, onSignIn, copy }) {
             ))}
           </div>
         </section>
-      </div>
+
       <section className="persona-section">
         <div className="section-heading-row">
           <div>
@@ -441,6 +441,7 @@ function HomeView({ onNavigate, onSignIn, copy }) {
           ))}
         </div>
       </section>
+      </div>
     </div>
   );
 }
