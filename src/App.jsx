@@ -349,55 +349,55 @@ function HomeView({ onNavigate, onSignIn, copy }) {
   }));
 
   return (
-    <div className="content-grid home-hero-layout">
+    <div className="home-hero-layout">
       {/* Old home-hero <section> replaced with the new interactive Hero */}
       <Hero />
-
-      <section className="primary-actions-panel">
-        {primaryActions.map(({ title, subtitle, action, onClick }) => (
-          <button
-            key={title}
-            type="button"
-            className="primary-action-card"
-            onClick={onClick}
-          >
-            <div>
-              <span className="mini-label">{copy.service}</span>
-              <strong>{title}</strong>
-              <small>{subtitle}</small>
-            </div>
-            <span className="action-link">
-              {action} <ChevronRight size={16} aria-hidden="true" />
-            </span>
-          </button>
-        ))}
-      </section>
-
-      <section className="quick-checks-card">
-        <div className="section-heading-row compact-row">
-          <div>
-            <p className="eyebrow">{copy.quickCheck}</p>
-            <h2>{copy.noLogin}</h2>
-          </div>
-        </div>
-        <div className="quick-checks-grid">
-          {quickChecks.map(({ label, detail, action }) => (
+      <div className="content-grid">
+        <section className="primary-actions-panel">
+          {primaryActions.map(({ title, subtitle, action, onClick }) => (
             <button
-              key={label}
+              key={title}
               type="button"
-              className="quick-check-item"
-              onClick={() => onNavigate("services")}
+              className="primary-action-card"
+              onClick={onClick}
             >
               <div>
-                <strong>{label}</strong>
-                <small>{detail}</small>
+                <span className="mini-label">{copy.service}</span>
+                <strong>{title}</strong>
+                <small>{subtitle}</small>
               </div>
-              <span>{action}</span>
+              <span className="action-link">
+                {action} <ChevronRight size={16} aria-hidden="true" />
+              </span>
             </button>
           ))}
-        </div>
-      </section>
+        </section>
 
+        <section className="quick-checks-card">
+          <div className="section-heading-row compact-row">
+            <div>
+              <p className="eyebrow">{copy.quickCheck}</p>
+              <h2>{copy.noLogin}</h2>
+            </div>
+          </div>
+          <div className="quick-checks-grid">
+            {quickChecks.map(({ label, detail, action }) => (
+              <button
+                key={label}
+                type="button"
+                className="quick-check-item"
+                onClick={() => onNavigate("services")}
+              >
+                <div>
+                  <strong>{label}</strong>
+                  <small>{detail}</small>
+                </div>
+                <span>{action}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
       <section className="persona-section">
         <div className="section-heading-row">
           <div>
