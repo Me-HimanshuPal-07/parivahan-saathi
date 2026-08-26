@@ -127,7 +127,7 @@ export function Hero() {
   const overall = audit ? STATUS_STYLES[audit.overall] : STATUS_STYLES.clear;
 
   return (
-    <section className="relative isolate w-full overflow-hidden">
+    <section className="relative isolate overflow-hidden rounded-3xl">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         {backgrounds.map((image, index) => (
