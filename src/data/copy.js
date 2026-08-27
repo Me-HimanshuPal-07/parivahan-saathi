@@ -2,7 +2,6 @@ export const copy = {
   en: {
     language: "English",
     brandName: "Parivahan Saathi",
-    brandTagline: "Your trusted guide for every road journey",
     signIn: "Sign in",
     signOut: "Sign out",
 
@@ -238,82 +237,54 @@ export const copy = {
     qOtp: "Why do I need an OTP?",
     aOtp: "An OTP represents a consent and account-verification step. Here it is fully simulated.",
 
-    // ==========================================
-    // EN ACADEMY KNOWLEDGE DATA
-    // ==========================================
-
     learningHub: {
       1.1: {
         breadcrumb: "Home → Get Started → Welcome",
-
         title: "Welcome to Parivahan Saathi 2026",
-
         lead: "Your simplified, visual citizen education platform built for the modern generation. Access 36 personal mobility registers instantly without middlemen.",
-
         bento_title_1: "🪪 Identity Gateway (Sarathi)",
-
         bento_desc_1:
           "Apply and manage your Learner and Permanent Driving Licences securely through our Faceless AI Engine.",
-
         bento_title_2: "🚗 Asset Ledger (Vahan)",
-
         bento_desc_2:
           "Track your vehicle's Registration Certificate (RC), transfer ownership, and monitor environmental green compliance on the fly.",
       },
-
       1.4: {
         breadcrumb: "Home → Get Started → Portal Guide",
-
         title: "How to use this Portal? (60-Second Walkthrough)",
-
         lead: "Bypass legacy public tech complexity. Follow this structural micro-learning loop to navigate your files efficiently.",
-
         step_1:
           "1. Scan Left Menu: Use the long 45-node tree sidebar to jump directly into specific Sarathi or Vahan chapters.",
-
         step_2:
           "2. Launch AI Assistant: Click the bottom pill console 'Ask Assistant... ⌘K' to semantically search any rule in natural phrasing.",
-
         step_3:
           "3. Run Active Demos: Click folder 2.1 to test our real in-browser HTML Canvas file compressor and signage quiz games.",
       },
     },
   },
 
-  // ==================================================
-  // HINGLISH
-  // ==================================================
-
   hinglish: {
     language: "Hinglish",
     brandName: "Parivahan Saathi",
-    brandTagline: "Har road journey ka trusted saathi",
     signIn: "Sign in karein",
     signOut: "Sign out",
 
     home: {
       welcome: "Saathi par aapka swagat hai",
-
       title: "Aaj aapko kis cheez mein madad chahiye?",
-
       subtitle:
         "Quick check se shuru karein, apni LL / DL journey start karein, ya agla step samjhein.",
-
       badge: "Citizen-first mobility",
-
       heroTitle: "Har transport problem ke liye ek clear raasta.",
-
       heroText:
         "Apna challan check karein, LL / DL ka next step samjhein, ya vehicle ko ek simple service layer se manage karein.",
 
       startService: "Apni service shuru karein",
-
       quickChecks: "Quick checks",
       service: "Service",
       today: "Example view",
       actionsDue: "Demo snapshot",
       pending: "pending",
-
       validTill: "30 Oct tak valid",
       docsPending: "Documents pending",
 
@@ -371,9 +342,7 @@ export const copy = {
       ],
 
       visionEyebrow: "Badi vision",
-
       visionTitle: "Sirf quick-check app nahi",
-
       visionText:
         "Aaj focus pehle useful action par hai. Round 2 mein poori citizen journey connect hogi.",
 
@@ -408,16 +377,13 @@ export const copy = {
     },
 
     authTitle: "Apni ID se continue karein",
-
     authIntro:
       "Apna phone, Aadhaar, PAN ya DL number daalein — hum ise detect karke check karenge ki aap already registered hain ya nahi.",
 
     asideEyebrow: "Secure demo access",
     asideHeading: "Ek input. Auto-detect. Verified.",
-
     asideBody:
       "Koi bhi identifier daalein — phone, Aadhaar, PAN ya DL number. Hum ise detect karke aapko automatically route kar denge.",
-
     authSteps: ["Koi bhi identifier daalein", "Demo OTP se verify karein", "Apne workspace par pahunchein"],
 
     identifyLabel: "Phone / Aadhaar / PAN / DL number",
@@ -440,9 +406,7 @@ export const copy = {
     fieldRequired: "Apna phone, Aadhaar, PAN ya DL number daalein.",
 
     otpTitle: "OTP daalein",
-
     otpIntro: "Registered mobile par 4-digit code bheja gaya hai.",
-
     welcomeBack: (name) => `Wapas swagat hai, ${name}`,
     newRegistration: "Naya registration",
     demoOtpLabel: "Demo OTP",
@@ -454,7 +418,6 @@ export const copy = {
     secureDemo: "Koi real personal information collect ya transmit nahi hoti.",
 
     verified: "Identity verified",
-
     welcomeNew: "Welcome, Ananya",
     welcomeExisting: "Welcome back, Rajesh",
 
@@ -523,101 +486,69 @@ export const copy = {
     ],
 
     qLogin: "Main sign in kaise karun?",
-
     aLogin:
       "Verification method choose karein. Safe demo ke liye OTP 123456 ya returning-user MPIN 4455 use karein.",
 
     qRecords: "Kya ye mere real records use karega?",
-
     aRecords:
       "Nahi. Ye prototype sirf synthetic local data display karta hai. Ye government systems se kabhi connect nahi hota.",
 
     qNext: "Verification ke baad kya hoga?",
-
     aNext:
       "New citizens Learner’s Licence journey start karenge. Existing users apne connected demo records dekh sakte hain.",
 
     qOtp: "OTP kyun chahiye?",
-
     aOtp:
       "OTP consent aur account-verification step ko represent karta hai. Is demo mein ye completely simulated hai.",
-
-    // ==========================================
-    // HINGLISH ACADEMY KNOWLEDGE DATA
-    // ==========================================
 
     learningHub: {
       1.1: {
         breadcrumb: "Home → Start Karo → Welcome",
-
         title: "Parivahan Saathi 2026 mein Aapka Swagat Hai",
-
         lead: "Modern generation ke liye banaya gaya aapka simple aur visual citizen learning platform. Bina kisi agent ya bicheliya ke directly 36 personal mobility services ko access karein.",
-
         bento_title_1: "🪪 Identity Gateway (Sarathi)",
-
         bento_desc_1:
           "Humare Faceless AI Engine ke through apne Learner aur Permanent Driving Licence ke liye safely apply aur manage karein.",
-
         bento_title_2: "🚗 Asset Ledger (Vahan)",
-
         bento_desc_2:
           "Apni gaadi ke Registration Certificate (RC) ko track karein, ownership transfer karein aur environmental green compliance monitor karein.",
       },
-
       1.4: {
         breadcrumb: "Home → Start Karo → Portal Guide",
-
         title: "Iss Portal ko kaise use karein? (60-Second Tour Guide)",
-
         lead: "Purani government websites ki complication ko bypass karein. Apne files aur rules ko efficiently navigate karne ke liye iss micro-learning loop ko follow karein.",
-
         step_1:
           "1. Left Menu Scan Karein: Specific Sarathi ya Vahan sections mein directly jaane ke liye long 45-node sidebar tree ka use karein.",
-
         step_2:
           "2. AI Assistant Launch Karein: Natural language mein kisi bhi rule ko directly search karne ke liye bottom pill 'Ask Assistant... ⌘K' par click karein.",
-
         step_3:
           "3. Active Demos Run Karein: Humare real in-browser HTML Canvas image compressor aur traffic signage quiz games ko test karne ke liye folder 2.1 par click karein.",
       },
     },
   },
 
-  // ==================================================
-  // HINDI
-  // ==================================================
-
   hi: {
     language: "हिंदी",
     brandName: "परिवहन साथी",
-    brandTagline: "हर सड़क यात्रा का भरोसेमंद साथी",
     signIn: "साइन इन करें",
     signOut: "साइन आउट",
 
     home: {
       welcome: "साथी में आपका स्वागत है",
-
       title: "आज आपको किस चीज़ में मदद चाहिए?",
-
       subtitle:
         "क्विक चेक से शुरुआत करें, अपनी LL / DL यात्रा शुरू करें या अगला कदम समझें।",
-
       badge: "नागरिक-प्रथम मोबिलिटी",
-
       heroTitle: "हर परिवहन समस्या के लिए एक स्पष्ट रास्ता।",
-
       heroText:
         "अपना चालान चेक करें, LL / DL का अगला कदम समझें या अपने वाहन को एक सरल सर्विस लेयर से मैनेज करें।",
 
       startService: "अपनी सेवा शुरू करें",
-
       quickChecks: "क्विक चेक",
       service: "सेवा",
       today: "उदाहरण दृश्य",
       actionsDue: "डेमो स्नैपशॉट",
       pending: "लंबित",
-
       validTill: "30 अक्टूबर तक मान्य",
       docsPending: "दस्तावेज़ लंबित",
 
@@ -675,9 +606,7 @@ export const copy = {
       ],
 
       visionEyebrow: "बड़ी सोच",
-
       visionTitle: "सिर्फ क्विक-चेक ऐप नहीं",
-
       visionText:
         "आज हमारा फोकस पहले उपयोगी एक्शन पर है। राउंड 2 में पूरी नागरिक यात्रा को एक साथ जोड़ा जाएगा।",
 
@@ -711,16 +640,13 @@ export const copy = {
     },
 
     authTitle: "अपनी पहचान से आगे बढ़ें",
-
     authIntro:
       "अपना फ़ोन, आधार, पैन या डीएल नंबर दर्ज करें — हम इसे पहचान लेंगे और जांचेंगे कि आप पहले से पंजीकृत हैं या नहीं।",
 
     asideEyebrow: "सुरक्षित डेमो एक्सेस",
     asideHeading: "एक इनपुट. ऑटो-पहचान. सत्यापित.",
-
     asideBody:
       "कोई भी पहचान डालें — फ़ोन, आधार, पैन या डीएल नंबर। हम इसे पहचानकर आपको आगे बढ़ा देंगे।",
-
     authSteps: ["कोई भी पहचान दर्ज करें", "डेमो OTP से सत्यापित करें", "अपने वर्कस्पेस पर पहुंचें"],
 
     identifyLabel: "फ़ोन / आधार / पैन / डीएल नंबर",
@@ -743,9 +669,7 @@ export const copy = {
     fieldRequired: "अपना फ़ोन, आधार, पैन या डीएल नंबर दर्ज करें।",
 
     otpTitle: "OTP दर्ज करें",
-
     otpIntro: "पंजीकृत मोबाइल पर 4 अंकों का कोड भेजा गया है।",
-
     welcomeBack: (name) => `वापसी पर स्वागत है, ${name}`,
     newRegistration: "नया पंजीकरण",
     demoOtpLabel: "डेमो OTP",
@@ -758,7 +682,6 @@ export const copy = {
       "कोई वास्तविक व्यक्तिगत जानकारी एकत्र या प्रसारित नहीं की जाती।",
 
     verified: "पहचान सत्यापित",
-
     welcomeNew: "स्वागत है, अनन्या",
     welcomeExisting: "वापसी पर स्वागत है, राजेश",
 
@@ -827,61 +750,41 @@ export const copy = {
     ],
 
     qLogin: "मैं साइन इन कैसे करूं?",
-
     aLogin:
       "सत्यापन विधि चुनें। सुरक्षित डेमो के लिए OTP 123456 या returning-user MPIN 4455 का उपयोग करें।",
 
     qRecords: "क्या यह मेरे वास्तविक रिकॉर्ड का उपयोग करेगा?",
-
     aRecords:
       "नहीं। यह प्रोटोटाइप केवल सिंथेटिक लोकल डेटा दिखाता है। यह कभी भी सरकारी सिस्टम से कनेक्ट नहीं होता।",
 
     qNext: "सत्यापन के बाद क्या होगा?",
-
     aNext:
       "नए नागरिक लर्नर लाइसेंस की यात्रा शुरू करेंगे। मौजूदा उपयोगकर्ता अपने जुड़े हुए डेमो रिकॉर्ड देख सकते हैं।",
 
     qOtp: "OTP की आवश्यकता क्यों है?",
-
     aOtp:
       "OTP सहमति और अकाउंट सत्यापन चरण को दर्शाता है। इस डेमो में यह पूरी तरह से सिम्युलेटेड है।",
-
-    // ==========================================
-    // HINDI ACADEMY KNOWLEDGE DATA
-    // ==========================================
 
     learningHub: {
       1.1: {
         breadcrumb: "होम → शुरुआत करें → स्वागत है",
-
         title: "परिवहन साथी 2026 में आपका स्वागत है",
-
         lead: "आधुनिक पीढ़ी के लिए बनाया गया आपका सरल और सचित्र नागरिक ज्ञान केंद्र। बिना किसी दलाल या बिचौलिए के सीधे 36 व्यक्तिगत गतिशीलता सेवाओं तक पहुँचें।",
-
         bento_title_1: "🪪 पहचान गेटवे (सारथी)",
-
         bento_desc_1:
           "हमारे फेसलेस एआई इंजन के माध्यम से अपने लर्नर और स्थायी ड्राइविंग लाइसेंस के लिए सुरक्षित रूप से आवेदन और प्रबंधन करें।",
-
         bento_title_2: "🚗 वाहन संपत्ति खाता (वाहन)",
-
         bento_desc_2:
           "अपनी गाड़ी के रजिस्ट्रेशन सर्टिफिकेट (RC) को ट्रैक करें, मालिकाना हक ट्रांसफर करें और ग्रीन टैक्स अनुपालन की तुरंत जाँच करें।",
       },
-
       1.4: {
         breadcrumb: "होम → शुरुआत करें → पोर्टल मार्गदर्शिका",
-
         title: "इस पोर्टल का उपयोग कैसे करें? (60-सेकंड की गाइड)",
-
         lead: "पुरानी सरकारी वेबसाइटों की जटिलता को कहें अलविदा। अपनी फाइलों और नियमों को आसानी से समझने के लिए इस छोटे लर्निंग लूप का पालन करें।",
-
         step_1:
           "1. बाएँ मेनू को देखें: विशिष्ट सारथी या वाहन अध्यायों में सीधे जाने के लिए 45-नोड वाले लंबे साइडबार का उपयोग करें।",
-
         step_2:
           "2. एआई असिस्टेंट शुरू करें: प्राकृतिक भाषा में किसी भी नियम को तुरंत खोजने के लिए नीचे बने 'Ask Assistant... ⌘K' पर क्लिक करें।",
-
         step_3:
           "3. लाइव डेमो चलाएँ: हमारे ब्राउज़र-नेटिव इमेज कंप्रेसर और ट्रैफिक साइन क्विज़ गेम का लाइव परीक्षण करने के लिए फ़ोल्डर 2.1 पर क्लिक करें।",
       },
@@ -889,7 +792,6 @@ export const copy = {
   },
 };
 
-// Supports components that import the plain copy object.
 export function getCopy(lang) {
   return copy[lang];
 }
