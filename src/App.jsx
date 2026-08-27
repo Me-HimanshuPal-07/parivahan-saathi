@@ -212,7 +212,7 @@ function App() {
 
         {/* Right Side Actions Block */}
         <div className="topbar-actions flex items-center gap-2">
-          {/* 🖥️ DESKTOP LOCATION CHIP: Ab yahan Right side me Place hai */}
+          {/* 🖥️ DESKTOP LOCATION CHIP */}
           <button
             type="button"
             onClick={() => setIsLocationModalOpen(true)}
@@ -234,8 +234,10 @@ function App() {
             <MapPin size={16} className="shrink-0" />
           </button>
 
-          {/* 🌐 Language Switcher */}
-          <LanguagePicker language={language} onChange={setLanguage} />
+          {/* 🌐 Language Switcher Wrapper */}
+          <div className="shrink-0">
+            <LanguagePicker language={language} onChange={setLanguage} />
+          </div>
 
           {/* Notifications & Auth Buttons */}
           {!session && (
