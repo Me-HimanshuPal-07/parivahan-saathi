@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -6,7 +6,7 @@ import {
   FileText,
   Gauge,
   Lock,
-  Search,
+  ScanFace,
   ShieldCheck,
   Sparkles,
   Leaf,
@@ -18,13 +18,6 @@ import {
   normalizeVehicleNumber,
 } from "../lib/mock-data";
 
-const backgrounds = [
-  "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=2200&q=85",
-  "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=2200&q=85",
-  "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=2200&q=85",
-  "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=2200&q=85",
-];
-
 const SAMPLES = ["UP32EA1234", "DL01CD5678", "MH14EF9012", "KA05GH3456"];
 
 const ICONS = {
@@ -34,7 +27,6 @@ const ICONS = {
   challan: <IndianRupee className="h-5 w-5" />,
 };
 
-// Mapped to the project's #2A52BE theme (no CSS variables — plain hex/Tailwind).
 const STATUS_STYLES = {
   clear: {
     chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -60,7 +52,6 @@ const STATUS_STYLES = {
 const PLATE_PATTERN = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
 
 export function Hero() {
-  const [background, setBackground] = useState(0);
   const [step, setStep] = useState("input");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [touched, setTouched] = useState(false);
@@ -70,13 +61,6 @@ export function Hero() {
 
   const normalizedInput = normalizeVehicleNumber(vehicleNumber);
   const isValidPlate = PLATE_PATTERN.test(normalizedInput);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setBackground((current) => (current + 1) % backgrounds.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   function runAudit(value) {
     const normalized = normalizeVehicleNumber(value ?? vehicleNumber);
@@ -127,52 +111,85 @@ export function Hero() {
   const overall = audit ? STATUS_STYLES[audit.overall] : STATUS_STYLES.clear;
 
   return (
-    <section className="relative isolate overflow-hidden rounded-3xl">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        {backgrounds.map((image, index) => (
-          <div
-            key={image}
-            aria-hidden="true"
-            className={
-              "absolute inset-0 bg-cover bg-center transition-opacity duration-1000 " +
-              (index === background ? "opacity-100" : "opacity-0")
-            }
-            style={{ backgroundImage: `url(${image})` }}
-          />
-        ))}
-        <div className="absolute inset-0 bg-[#0B142B]/70" aria-hidden="true" />
-        <div
-          className="absolute inset-0 bg-linear-to-b from-[#0B142B]/80 via-[#0B142B]/40 to-[#0B142B]/85"
-          aria-hidden="true"
-        />
+    <section className="relative isolate col-span-full overflow-hidden rounded-[32px]">
+      {/* Scoped, reduced-motion-aware animation for the background lane lines
+          and the scan sweep on the plate input. */}
+      <style>{`
+        @keyframes ps-lane-scroll { to { stroke-dashoffset: -64; } }
+        .ps-lane-lines { animation: ps-lane-scroll 4.5s linear infinite; }
+        @keyframes ps-scan-sweep {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(320%); }
+        }
+        .ps-scan-sweep { animation: ps-scan-sweep 1.15s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .ps-lane-lines, .ps-scan-sweep { animation: none !important; }
+        }
+      `}</style>
+
+      {/* Background: custom vector "road + scan grid" — no stock photography,
+          lighter to load and consistent with the brand on every connection speed. */}
+      <div
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#1c2f6b_0%,#0b1330_55%,#05070f_100%)]"
+        aria-hidden="true"
+      >
+        <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[#3E63D6]/30 blur-3xl" />
+        <div className="absolute bottom-0 left-[12%] h-64 w-64 rounded-full bg-[#F2A93B]/10 blur-3xl" />
+        <svg
+          className="absolute inset-0 h-full w-full opacity-30"
+          preserveAspectRatio="none"
+          viewBox="0 0 1200 600"
+        >
+          <defs>
+            <linearGradient id="psLaneFade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
+              <stop offset="55%" stopColor="#fff" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <g
+            className="ps-lane-lines"
+            stroke="url(#psLaneFade)"
+            strokeWidth="2"
+            strokeDasharray="14 18"
+          >
+            <path d="M -120 640 L 260 -40" />
+            <path d="M 140 640 L 460 -40" />
+            <path d="M 420 640 L 660 -40" />
+            <path d="M 720 640 L 860 -40" />
+            <path d="M 1000 640 L 1040 -40" />
+            <path d="M 1320 640 L 1180 -40" />
+          </g>
+        </svg>
+        <div className="absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#05070f]/10 to-[#05070f]/85" />
       </div>
 
-      <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:py-16">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-          <Sparkles className="h-3.5 w-3.5 shrink-0" />
+      <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-20">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/80 backdrop-blur">
+          <Sparkles className="h-3.5 w-3.5 text-[#F2A93B]" />
           एक number · पूरी gaadi की report
         </span>
 
-        <h1 className="mt-5 text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-          Gaadi ka पूरा Health Audit,
-          <br />
-          <span className="text-white/75">एक ही जगह पर।</span>
+        <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
+          Gaadi ka पूरा <span className="text-[#8FADFF]">Health Audit</span>,
+          <br className="hidden sm:block" />
+          एक ही जगह पर।
         </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
+        <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
           Challan, Insurance, PUCC और RC — अलग-अलग portal नहीं। Vehicle number
           डालें और 3 second में साफ़ traffic-light status पाएँ। Login ki
           zaroorat nahi.
         </p>
 
-        {/* Audit hub */}
-        <div className="mt-8 overflow-hidden rounded-3xl border border-[#e4eaf2] bg-white/95 shadow-2xl backdrop-blur-xl">
-          <div className="grid gap-3 border-b border-[#e4eaf2] p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-6">
+        {/* Scanner card */}
+        <div className="relative mt-10 overflow-hidden rounded-[28px] border border-white/10 bg-white shadow-[0_30px_70px_-18px_rgba(5,10,26,0.6)]">
+          <div className="flex flex-col gap-3 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#2A52BE]">
                 All-in-one health audit
               </p>
-              <h2 className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              <h2 className="mt-1 truncate text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
                 {step === "input"
                   ? "Apni gaadi ka status check करें"
                   : `Report · ${audit?.vehicleNumber ?? ""}`}
@@ -181,7 +198,7 @@ export function Hero() {
             {step !== "input" && audit ? (
               <span
                 className={
-                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold " +
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold " +
                   overall.chip
                 }
               >
@@ -192,14 +209,14 @@ export function Hero() {
                 {overall.text}
               </span>
             ) : (
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e4eaf2] bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-500">
-                <Lock className="h-3 w-3" />
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-[11px] font-bold text-slate-500">
+                <Lock className="h-3.5 w-3.5" />
                 No login · No captcha
               </span>
             )}
           </div>
 
-          <div className="p-5 sm:p-6">
+          <div className="p-6 sm:p-7">
             {step === "input" && (
               <div>
                 <form
@@ -207,40 +224,55 @@ export function Hero() {
                     e.preventDefault();
                     runAudit();
                   }}
-                  className="space-y-2"
+                  className="space-y-3"
                   noValidate
                 >
                   <label
                     htmlFor="vehicle"
-                    className="block text-sm font-semibold text-slate-900"
+                    className="block text-sm font-bold text-slate-900"
                   >
                     Vehicle Registration Number
                   </label>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <div className="relative flex-1">
-                      <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                      <input
-                        id="vehicle"
-                        value={vehicleNumber}
-                        onChange={(e) => {
-                          setVehicleNumber(e.target.value.toUpperCase());
-                          setTouched(false);
-                        }}
-                        placeholder="जैसे UP32EA1234"
-                        autoCapitalize="characters"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        aria-label="Vehicle registration number"
-                        className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-white pl-12 pr-5 text-base font-semibold uppercase tracking-[0.14em] outline-none transition placeholder:font-medium placeholder:normal-case placeholder:tracking-normal focus:border-[#2A52BE] focus:ring-4 focus:ring-blue-100"
-                      />
+                      <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-slate-900 bg-white shadow-[0_3px_0_0_#0f172a] transition-colors focus-within:border-[#2A52BE]">
+                        <div className="flex w-11 shrink-0 flex-col items-center justify-center gap-1 bg-[#2A52BE] text-white">
+                          <span className="text-[8px] font-black tracking-[0.18em]">
+                            IND
+                          </span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+                        </div>
+                        <input
+                          id="vehicle"
+                          value={vehicleNumber}
+                          onChange={(e) => {
+                            setVehicleNumber(e.target.value.toUpperCase());
+                            setTouched(false);
+                          }}
+                          placeholder="UP32EA1234"
+                          autoCapitalize="characters"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          aria-label="Vehicle registration number"
+                          className="h-16 min-w-0 flex-1 bg-transparent px-4 font-mono text-xl font-extrabold uppercase tracking-[0.12em] text-slate-900 outline-none placeholder:font-semibold placeholder:text-slate-300 sm:text-2xl"
+                        />
+                        {loading && (
+                          <div
+                            className="pointer-events-none absolute inset-y-0 left-11 right-0 overflow-hidden"
+                            aria-hidden="true"
+                          >
+                            <div className="ps-scan-sweep h-full w-1/3 bg-linear-to-r from-transparent via-[#2A52BE]/15 to-transparent" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="h-14 shrink-0 rounded-2xl bg-[#2A52BE] px-6 text-base font-semibold text-white shadow-md transition-colors hover:bg-[#2245a3] disabled:opacity-70"
+                      className="h-16 shrink-0 rounded-2xl bg-[#2A52BE] px-7 text-base font-bold text-white shadow-[0_12px_26px_-10px_rgba(42,82,190,0.75)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
                     >
-                      {loading ? "Checking..." : "Full Check करें"}
+                      {loading ? "Scanning..." : "Full Check करें"}
                     </button>
                   </div>
                   {touched && !isValidPlate ? (
@@ -252,8 +284,8 @@ export function Hero() {
                   ) : null}
                 </form>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-medium text-slate-500">
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-slate-400">
                     Try:
                   </span>
                   {SAMPLES.map((num) => (
@@ -261,14 +293,14 @@ export function Hero() {
                       key={num}
                       type="button"
                       onClick={() => runAudit(num)}
-                      className="rounded-full border border-[#2A52BE]/20 bg-[#2A52BE]/5 px-3 py-1.5 text-xs font-semibold tracking-wide text-[#2A52BE] transition-colors hover:bg-[#2A52BE]/10"
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs font-bold tracking-wider text-slate-600 transition-colors hover:border-[#2A52BE]/40 hover:bg-[#2A52BE]/5 hover:text-[#2A52BE]"
                     >
                       {num}
                     </button>
                   ))}
                 </div>
 
-                <div className="mt-5 grid gap-2 sm:grid-cols-4">
+                <div className="mt-6 grid gap-2 sm:grid-cols-4">
                   {[
                     { icon: <FileText className="h-4 w-4" />, label: "RC" },
                     {
@@ -283,7 +315,7 @@ export function Hero() {
                   ].map((chip) => (
                     <div
                       key={chip.label}
-                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl border border-[#e4eaf2] bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-500"
+                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-500 transition-colors hover:border-[#2A52BE]/25 hover:bg-[#2A52BE]/5"
                     >
                       <span className="shrink-0 text-[#2A52BE]">
                         {chip.icon}
@@ -293,7 +325,8 @@ export function Hero() {
                   ))}
                 </div>
 
-                <p className="mt-4 text-sm font-medium text-slate-500">
+                <p className="mt-5 flex items-center gap-2 text-sm font-medium text-slate-500">
+                  <ScanFace className="h-4 w-4 shrink-0 text-[#2A52BE]" />
                   चार portal, चार form — अब बस एक input में पूरी जानकारी।
                 </p>
               </div>
@@ -301,16 +334,16 @@ export function Hero() {
 
             {step === "audit" && audit && (
               <div className="space-y-4">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-[#e4eaf2] bg-slate-50 p-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
                       Owner (masked for privacy)
                     </p>
                     <p className="truncate text-base font-bold text-slate-900">
                       {audit.ownerMasked}
                     </p>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#e4eaf2] bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500">
                     <Gauge className="h-3 w-3" />
                     Audit in 3s
                   </span>
@@ -322,7 +355,10 @@ export function Hero() {
                     return (
                       <div
                         key={item.id}
-                        className={"rounded-2xl border bg-white p-4 " + s.ring}
+                        className={
+                          "rounded-2xl border bg-white p-4 shadow-[0_1px_0_0_rgba(15,23,42,0.03)] " +
+                          s.ring
+                        }
                       >
                         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
                           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2A52BE]/10 text-[#2A52BE]">
@@ -338,7 +374,7 @@ export function Hero() {
                           </span>
                           <span
                             className={
-                              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold " +
+                              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold " +
                               s.chip
                             }
                           >
@@ -361,12 +397,12 @@ export function Hero() {
                 </div>
 
                 {audit.totalDue > 0 ? (
-                  <div className="space-y-3 rounded-2xl border border-[#e4eaf2] bg-slate-50 p-4">
+                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <ul className="space-y-2">
                       {audit.challans.map((c) => (
                         <li
                           key={c.id}
-                          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-[#e4eaf2] bg-white px-4 py-3"
+                          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
                         >
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-medium text-slate-900">
@@ -383,10 +419,10 @@ export function Hero() {
                       ))}
                     </ul>
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                      <span className="min-w-0 text-sm font-semibold text-slate-900">
+                      <span className="min-w-0 text-sm font-bold text-slate-900">
                         Total due
                       </span>
-                      <span className="shrink-0 text-xl font-bold text-slate-900">
+                      <span className="shrink-0 text-xl font-extrabold text-slate-900">
                         {formatIndianRupee(audit.totalDue)}
                       </span>
                     </div>
@@ -394,7 +430,7 @@ export function Hero() {
                       type="button"
                       onClick={sendOtp}
                       disabled={loading}
-                      className="w-full rounded-2xl bg-[#2A52BE] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#2245a3] disabled:opacity-70"
+                      className="w-full rounded-2xl bg-[#2A52BE] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
                     >
                       {loading ? "Sending OTP..." : "Pay Now · OTP se secure"}
                     </button>
@@ -408,7 +444,7 @@ export function Hero() {
                 <button
                   type="button"
                   onClick={reset}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-50"
                 >
                   Dusri gaadi check करें
                 </button>
@@ -416,12 +452,12 @@ export function Hero() {
             )}
 
             {step === "otp" && (
-              <form onSubmit={verifyOtp} className="space-y-3">
-                <p className="inline-flex items-center gap-1.5 text-sm text-slate-500">
-                  <Lock className="h-4 w-4 shrink-0" />
-                  Payment ek protected step hai — mock OTP registered mobile par
-                  bheja gaya.
-                </p>
+              <form onSubmit={verifyOtp} className="space-y-4">
+                <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  <Lock className="h-4 w-4 shrink-0 text-[#2A52BE]" />
+                  Payment ek protected step hai — mock OTP registered mobile
+                  par bheja gaya.
+                </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     value={otp}
@@ -431,17 +467,17 @@ export function Hero() {
                     placeholder="Enter 6-digit OTP"
                     inputMode="numeric"
                     aria-label="OTP"
-                    className="h-14 flex-1 rounded-xl border-2 border-slate-200 bg-white px-5 text-center text-lg font-semibold tracking-[0.4em] outline-none transition placeholder:tracking-normal focus:border-[#2A52BE]"
+                    className="h-16 flex-1 rounded-2xl border-2 border-slate-900 bg-white px-5 text-center font-mono text-lg font-extrabold tracking-[0.5em] text-slate-900 outline-none transition-colors placeholder:tracking-normal placeholder:font-semibold placeholder:text-slate-300 focus:border-[#2A52BE]"
                   />
                   <button
                     type="submit"
                     disabled={loading}
-                    className="h-14 shrink-0 rounded-2xl bg-[#2A52BE] px-6 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#2245a3] disabled:opacity-70"
+                    className="h-16 shrink-0 rounded-2xl bg-[#2A52BE] px-7 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
                   >
                     {loading ? "Verifying..." : "Verify OTP"}
                   </button>
                 </div>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-semibold text-slate-500">
                   Demo OTP: 123456
                 </p>
               </form>
@@ -449,16 +485,16 @@ export function Hero() {
 
             {step === "payment" && audit && (
               <div className="space-y-4">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-[#e4eaf2] bg-slate-50 p-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
                       Total payable
                     </p>
-                    <p className="text-2xl font-bold text-slate-900">
+                    <p className="text-2xl font-extrabold text-slate-900">
                       {formatIndianRupee(audit.totalDue)}
                     </p>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#e4eaf2] bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500">
                     <ShieldCheck className="h-3 w-3" />
                     Verified session
                   </span>
@@ -467,7 +503,7 @@ export function Hero() {
                   type="button"
                   onClick={payNow}
                   disabled={loading}
-                  className="w-full rounded-2xl bg-[#2A52BE] px-6 py-4 text-base font-semibold text-white shadow-md transition-colors hover:bg-[#2245a3] disabled:opacity-70"
+                  className="w-full rounded-2xl bg-[#2A52BE] px-6 py-4 text-base font-bold text-white shadow-[0_12px_26px_-10px_rgba(42,82,190,0.75)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
                 >
                   {loading
                     ? "Processing..."
@@ -493,7 +529,7 @@ export function Hero() {
                 <button
                   type="button"
                   onClick={reset}
-                  className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                  className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-50"
                 >
                   Check another vehicle
                 </button>
@@ -502,7 +538,7 @@ export function Hero() {
           </div>
 
           {/* Trust footer */}
-          <div className="grid gap-1 border-t border-[#e4eaf2] bg-slate-50 px-5 py-4 text-xs text-slate-500 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="grid gap-1 rounded-b-[28px] border-t border-slate-100 bg-slate-50 px-6 py-4 text-xs text-slate-500 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-7">
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Lock className="h-3.5 w-3.5 shrink-0" />
               Owner data masked · Rate-limit &amp; bot protection simulated ·
@@ -512,22 +548,6 @@ export function Hero() {
               Parivahan Saathi · Citizen-first experience
             </span>
           </div>
-        </div>
-
-        {/* Carousel indicators */}
-        <div className="mt-6 flex items-center gap-2">
-          {backgrounds.map((image, index) => (
-            <button
-              key={image}
-              type="button"
-              onClick={() => setBackground(index)}
-              aria-label={`Show background ${index + 1}`}
-              className={
-                "h-1.5 rounded-full transition-all " +
-                (index === background ? "w-8 bg-white" : "w-2 bg-white/40")
-              }
-            />
-          ))}
         </div>
       </div>
     </section>

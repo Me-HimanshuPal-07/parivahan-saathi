@@ -47,3 +47,22 @@ export const DEMO_NEW_CITIZEN = {
   registeredMobile: '+91 ******7812',
   avatarSeed: 'ananya_sharma',
 }
+
+export const MOCK_LEARNING_PROGRESS = {
+  // अनन्य शर्मा (New Citizen) के लिए स्टेट ड्रिवेन प्रोग्रेस पैरामीटर्स
+  ananyaProgress: {
+    completedNodes: ["1.1", "1.2", "1.3", "1.4"],
+    currentLLStep: "2.1.5", // Image Compressor पर एक्टिव है
+    mockQuizScore: 0,
+    quizCompleted: false,
+    signatureCompressedUrl: null,
+    eligibilityCheck: true
+  },
+  // राजेश कुमार (Existing Driver) के लिए स्टेट ड्रिवेन प्रोग्रेस पैरामीटर्स
+  rajeshProgress: {
+    completedNodes: ["1.1", "3.1.1", "4.2.1"],
+    puccAlertTriggered: true, // 28 अगस्त की डेडलाइन का अलर्ट एक्टिव
+    challanPaidViaUpi: false,
+    rcTransferNocStatus: "Pending_RTO_Verification"
+  }
+};

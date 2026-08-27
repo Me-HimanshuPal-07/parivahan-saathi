@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import {
   Bell,
@@ -9,7 +9,6 @@ import {
   GraduationCap,
   FileClock,
   IdCard,
-  ListChecks,
   LifeBuoy,
   LogIn,
   MapPin,
@@ -18,58 +17,93 @@ import {
   Sparkles,
   UserRound,
   X,
+  Award,
 } from "lucide-react";
 import { AuthFlow } from "./components/AuthFlow";
 import { AuthenticatedWorkspace } from "./components/AuthenticatedWorkspace";
-import Hero from "./components/Hero";
+import { Hero } from "./components/Hero";
 import { AISaathi } from "./components/AISaathi";
 import { LanguagePicker } from "./components/LanguagePicker";
+import LocationPicker, {
+  INDIA_LOCATIONS_DATA,
+} from "./components/LocationPicker";
 import { getCopy } from "./data/copy";
 import { MOCK_SYSTEM_DB } from "./data/mockSystem";
+
+import LearnHubSidebar from "./components/LearnHubSidebar";
+import LearnHubContent from "./components/LearnHubContent";
+import JudgeDashboard from "./components/JudgeDashboard";
 
 function App() {
   const [activeView, setActiveView] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [language, setLanguage] = useState("hinglish");
+  const [language, setLanguage] = useState("hinglish"); // 'hi' | 'hinglish' | 'en'
   const [session, setSession] = useState(null);
+
+  const [currentNode, setCurrentNode] = useState("1.1");
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  // Persistent Location State across Modal Re-opens & Language Swapping
+  const [locationData, setLocationData] = useState({
+    stateKey: "up",
+    cityKey: "muzaffarnagar",
+    coords: { lat: 29.4727, lng: 77.7085 },
+    customCityName: null,
+  });
+
   const mainRef = useRef(null);
   const sidebarRef = useRef(null);
-  const [appState] = useState({
-    location: "Muzaffarnagar, Uttar Pradesh",
-    identity: MOCK_SYSTEM_DB.newCitizenAccount,
-    existingProfile: MOCK_SYSTEM_DB.existingOfflineUser,
-    application: null,
-  });
+
   const t = getCopy(language);
-  const displayLocation = "Muzaffarnagar, UP";
+
+  // Compute Header City Display Name dynamically based on active language
+  const getDisplayCityName = () => {
+    const currentCityObj = INDIA_LOCATIONS_DATA[
+      locationData.stateKey
+    ]?.cities.find((c) => c.key === locationData.cityKey);
+
+    if (currentCityObj) {
+      return currentCityObj.names[language] || currentCityObj.names.en;
+    }
+    return (
+      locationData.customCityName ||
+      (language === "hi" ? "मुज़फ़्फ़रनगर" : "Muzaffarnagar")
+    );
+  };
+
+  const headerCityName = getDisplayCityName();
+
+  const handleLocationSelect = (selectedData) => {
+    setLocationData({
+      stateKey: selectedData.stateKey,
+      cityKey: selectedData.cityKey,
+      coords: selectedData.coordinates,
+      customCityName: selectedData.cityName,
+    });
+  };
+
   const navItems = [
     { id: "home", label: language === "hi" ? "होम" : "Saathi", icon: Sparkles },
     {
-      id: "services",
-      label:
-        language === "hi"
-          ? "क्विक चेcks"
-          : language === "hinglish"
-            ? "Quick checks"
-            : "Quick checks",
-      icon: ListChecks,
-    },
-    {
       id: "driver",
-      label:
-        language === "hi"
-          ? "ड्राइवर सेवाएँ"
-          : language === "hinglish"
-            ? "Driver services"
-            : "Driver services",
+      label: language === "hi" ? "ड्राइवर सेवाएँ" : "Driver services",
       icon: IdCard,
     },
-    { id: "vehicle", label: "Vahan", icon: Bike },
     {
-      id: "learn",
-      label: language === "hi" ? "सीखें" : "Learn",
+      id: "vehicle",
+      label: language === "hi" ? "वाहन" : "Vehicle",
+      icon: Bike,
+    },
+    {
+      id: "learn_hub",
+      label: language === "hi" ? "शिक्षा" : "Learn Hub",
       icon: GraduationCap,
+    },
+    {
+      id: "judge_panel",
+      label: language === "hi" ? "जूरी स्पेस" : "Jury",
+      icon: Award,
     },
     {
       id: "help",
@@ -143,7 +177,7 @@ function App() {
 
   return (
     <div
-      className={`min-h-screen bg-[#F5F7FA] text-slate-900 lang-${language}`}
+      className={`min-h-screen bg-[#F5F7FA] text-slate-900 lang-${language} font-['Baloo_2']`}
     >
       <div className="demo-banner">
         <ShieldCheck size={16} aria-hidden="true" />
@@ -154,10 +188,14 @@ function App() {
       </div>
 
       <header className={`topbar ${isScrolled ? "topbar-scrolled" : ""}`}>
+        {/* Left Side: Only Logo & Brand Name */}
         <a
           className="brand"
           href="#home"
-          onClick={() => changeView("home")}
+          onClick={(e) => {
+            e.preventDefault();
+            changeView("home");
+          }}
           aria-label={`${t.brandName} home`}
         >
           <span className="brand-mark">
@@ -166,17 +204,40 @@ function App() {
               🇮🇳
             </span>
           </span>
+
           <span className="brand-copy">
             <strong>{t.brandName}</strong>
-            <small>{t.brandTagline}</small>
-            <span className="brand-location" title={appState.location}>
-              <MapPin size={11} aria-hidden="true" />
-              {displayLocation}
-            </span>
           </span>
         </a>
-        <div className="topbar-actions">
+
+        {/* Right Side Actions Block */}
+        <div className="topbar-actions flex items-center gap-2">
+          {/* 🖥️ DESKTOP LOCATION CHIP: Ab yahan Right side me Place hai */}
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EBF3FC] text-[#2A52BE] hover:bg-[#2A52BE] hover:text-white transition-all text-xs font-semibold cursor-pointer shadow-xs border border-[#2A52BE]/10"
+            title={headerCityName}
+          >
+            <MapPin size={13} aria-hidden="true" />
+            <span className="truncate max-w-[130px]">{headerCityName}</span>
+          </button>
+
+          {/* 📱 MOBILE LOCATION ICON */}
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="lg:hidden flex items-center justify-center p-2 rounded-full bg-[#EBF3FC] text-[#2A52BE] active:scale-95 transition-all border border-[#2A52BE]/10 shadow-xs"
+            title={`Location: ${headerCityName}`}
+            aria-label="Change location"
+          >
+            <MapPin size={16} className="shrink-0" />
+          </button>
+
+          {/* 🌐 Language Switcher */}
           <LanguagePicker language={language} onChange={setLanguage} />
+
+          {/* Notifications & Auth Buttons */}
           {!session && (
             <button
               className="icon-button desktop-only"
@@ -212,16 +273,16 @@ function App() {
           )}
           {!session && (
             <button
-              className="icon-button mobile-only menu-toggle"
+              className="icon-button mobile-only menu-toggle flex items-center justify-center p-2 rounded-xl text-slate-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
               type="button"
               aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
               aria-expanded={isMenuOpen}
               onClick={() => setIsMenuOpen((open) => !open)}
             >
               {isMenuOpen ? (
-                <X size={22} strokeWidth={2.4} aria-hidden="true" />
+                <X size={20} strokeWidth={2.2} aria-hidden="true" />
               ) : (
-                <Menu size={23} strokeWidth={2.4} aria-hidden="true" />
+                <Menu size={20} strokeWidth={2.2} aria-hidden="true" />
               )}
             </button>
           )}
@@ -248,9 +309,30 @@ function App() {
           <div className="app-frame">
             <aside
               ref={sidebarRef}
-              className={`sidebar ${isMenuOpen ? "sidebar-open" : ""} ${isScrolled ? "sidebar-scrolled" : ""}`}
+              className={`sidebar ${
+                isMenuOpen ? "sidebar-open" : ""
+              } ${isScrolled ? "sidebar-scrolled" : ""}`}
               aria-label="Main navigation"
             >
+              <div className="lg:hidden px-3 py-2.5 mb-2 bg-[#EBF3FC] rounded-2xl border border-[#2A52BE]/10 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[#2A52BE]">
+                  <MapPin size={16} />
+                  <span className="text-xs font-bold truncate max-w-[150px]">
+                    {headerCityName}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsLocationModalOpen(true);
+                  }}
+                  className="text-[11px] font-bold text-[#2A52BE] underline"
+                >
+                  Change
+                </button>
+              </div>
+
               <button
                 className="mobile-menu-login"
                 type="button"
@@ -259,43 +341,67 @@ function App() {
                 <LogIn size={18} aria-hidden="true" />
                 {t.signIn}
               </button>
+
               <nav>
                 <p className="nav-label">Navigate</p>
                 {navItems.map(({ id, label, icon: Icon }) => (
                   <button
-                    className={`nav-item ${activeView === id ? "nav-item-active" : ""}`}
+                    className={`nav-item ${
+                      activeView === id ? "nav-item-active" : ""
+                    }`}
                     type="button"
                     key={id}
                     onClick={() => changeView(id)}
                   >
-                    <Icon size={20} aria-hidden="true" />
+                    <Icon size={18} aria-hidden="true" />
                     <span>{label}</span>
                   </button>
                 ))}
               </nav>
-              <div className="sidebar-note">
-                <Sparkles size={19} aria-hidden="true" />
-                <div>
-                  <strong>LL journey coming next</strong>
-                  <p>
-                    Eligibility, documents, payment, test and digital licence
-                    will be connected here.
-                  </p>
-                </div>
-              </div>
             </aside>
-            <main className="main-content" id="main-content" ref={mainRef}>
-              {activeView === "home" ? (
+
+            <div ref={mainRef} className="main-content">
+              {activeView === "home" && (
                 <HomeView
+                  language={language}
+                  copy={t.home}
                   onNavigate={changeView}
                   onSignIn={() => changeView("auth")}
-                  copy={t.home}
                 />
-              ) : (
-                <FoundationView activeView={activeView} />
               )}
-            </main>
+
+              {activeView === "learn_hub" && (
+                <div className="flex w-full min-h-[calc(100vh-140px)] bg-[#F5F7FA] rounded-2xl border border-gray-200/60 overflow-hidden shadow-2xs animate-fadeIn">
+                  <LearnHubSidebar
+                    currentNode={currentNode}
+                    setCurrentNode={setCurrentNode}
+                  />
+                  <LearnHubContent
+                    currentNode={currentNode}
+                    isLoggedIn={!!session}
+                    userProfile={session?.profile || null}
+                  />
+                </div>
+              )}
+
+              {activeView === "judge_panel" && <JudgeDashboard />}
+
+              {activeView !== "home" &&
+                activeView !== "learn_hub" &&
+                activeView !== "judge_panel" && (
+                  <div className="placeholder-card">
+                    <span aria-hidden="true">⚙️</span>
+                    <h2>{viewTitle} Engine View</h2>
+                    <p>
+                      This standard transactional module view is fully
+                      cataloged. Transaction state logs are locked under the
+                      primary portal gateway.
+                    </p>
+                  </div>
+                )}
+            </div>
           </div>
+
           <nav className="bottom-nav" aria-label="Mobile navigation">
             {navItems.map(({ id, label, icon: Icon }) => (
               <button
@@ -305,43 +411,37 @@ function App() {
                 onClick={() => changeView(id)}
               >
                 <Icon size={20} aria-hidden="true" />
-                <span>{label.replace(" application", "")}</span>
+                <span>{label}</span>
               </button>
             ))}
           </nav>
         </>
       )}
+
+      {isLocationModalOpen && (
+        <LocationPicker
+          savedStateKey={locationData.stateKey}
+          savedCityKey={locationData.cityKey}
+          savedCoords={locationData.coords}
+          savedCityName={headerCityName}
+          lang={language}
+          onSelectLocation={handleLocationSelect}
+          onClose={() => setIsLocationModalOpen(false)}
+        />
+      )}
+
       <AISaathi language={language} currentScreen={screenName} />
     </div>
   );
 }
 
-function HomeView({ onNavigate, onSignIn, copy }) {
-  const primaryActions = [
-    {
-      title: copy.quickChecks,
-      subtitle: copy.quickSubtitle,
-      action: "Check now",
-      onClick: () => onNavigate("services"),
-    },
-    {
-      title: "LL / DL",
-      subtitle: copy.driverSubtitle,
-      action: "Start now",
-      onClick: onSignIn,
-    },
-    {
-      title: "My Garage",
-      subtitle: copy.garageSubtitle,
-      action: "Manage",
-      onClick: onSignIn,
-    },
-  ];
+function HomeView({ language, copy, onNavigate, onSignIn }) {
   const quickChecks = copy.quickCheckItems;
   const personaCards = copy.personas.map((persona, index) => ({
     ...persona,
     accent: ["persona-blue", "persona-green", "persona-gold"][index],
   }));
+
   const icons = [BookOpenCheck, FileClock, Bike, Sparkles, ShieldCheck];
   const futureModules = copy.modules.map((module, index) => ({
     ...module,
@@ -349,29 +449,8 @@ function HomeView({ onNavigate, onSignIn, copy }) {
   }));
 
   return (
-    <div className="content-grid home-hero-layout">
-      {/* Old home-hero <section> replaced with the new interactive Hero */}
-      <Hero />
-
-      <section className="primary-actions-panel">
-        {primaryActions.map(({ title, subtitle, action, onClick }) => (
-          <button
-            key={title}
-            type="button"
-            className="primary-action-card"
-            onClick={onClick}
-          >
-            <div>
-              <span className="mini-label">{copy.service}</span>
-              <strong>{title}</strong>
-              <small>{subtitle}</small>
-            </div>
-            <span className="action-link">
-              {action} <ChevronRight size={16} aria-hidden="true" />
-            </span>
-          </button>
-        ))}
-      </section>
+    <div className="content-grid home-hero-layout space-y-8 animate-fadeIn">
+      <Hero language={language} onStartService={onSignIn} />
 
       <section className="quick-checks-card">
         <div className="section-heading-row compact-row">
@@ -386,7 +465,7 @@ function HomeView({ onNavigate, onSignIn, copy }) {
               key={label}
               type="button"
               className="quick-check-item"
-              onClick={() => onNavigate("services")}
+              onClick={() => onNavigate("driver")}
             >
               <div>
                 <strong>{label}</strong>
@@ -405,7 +484,6 @@ function HomeView({ onNavigate, onSignIn, copy }) {
             <h2>{copy.personasTitle}</h2>
           </div>
         </div>
-
         <div className="persona-grid">
           {personaCards.map(({ title, subtitle, stat, accent }) => (
             <div key={title} className={`persona-card ${accent}`}>
@@ -442,49 +520,6 @@ function HomeView({ onNavigate, onSignIn, copy }) {
         </div>
       </section>
     </div>
-  );
-}
-
-function FoundationView({ activeView }) {
-  const descriptions = {
-    services: [
-      "Quick checks",
-      "Citizens can instantly check challan, PUCC, insurance and vehicle status without a long sign-in flow.",
-    ],
-    driver: [
-      "Driver services",
-      "Guided LL, DL renewal and document updates will help citizens complete the driving journey step-by-step.",
-    ],
-    vehicle: [
-      "Vahan",
-      "RC, ownership, compliance and due reminders will be grouped here for garage and vehicle management.",
-    ],
-    learn: [
-      "Learn Hub",
-      "Understand LL, DL, documents, rules and every service step through simple citizen-first guidance.",
-    ],
-    track: [
-      "Application tracker",
-      "The LL tracker will show current status, action required, recovery instructions, and next step.",
-    ],
-    help: [
-      "Help & support",
-      "Plain-language help content and recovery routes will be introduced with the Learner’s Licence journey.",
-    ],
-  };
-  const [title, description] = descriptions[activeView];
-  return (
-    <section className="placeholder-card">
-      <div className="placeholder-icon">
-        <BookOpenCheck size={28} aria-hidden="true" />
-      </div>
-      <p className="eyebrow">Foundation view</p>
-      <h2>{title}</h2>
-      <p>{description}</p>
-      <span className="status-pill status-muted">
-        Planned — not implemented in Task 1
-      </span>
-    </section>
   );
 }
 
