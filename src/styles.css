@@ -176,7 +176,6 @@ button {
   width: 19px;
 }
 
-/* Updated for single-line flex alignment */
 .brand-copy {
   min-width: 0;
   display: flex;
