@@ -1,11 +1,15 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeftRight,
+  Ban,
   CheckCircle2,
   Clock,
   FileText,
   Gauge,
+  Landmark,
   Lock,
+  ReceiptText,
   ScanFace,
   ShieldCheck,
   Sparkles,
@@ -24,7 +28,12 @@ const ICONS = {
   rc: <FileText className="h-5 w-5" />,
   insurance: <ShieldCheck className="h-5 w-5" />,
   pucc: <Leaf className="h-5 w-5" />,
+  fitness: <Gauge className="h-5 w-5" />,
   challan: <IndianRupee className="h-5 w-5" />,
+  blacklist: <Ban className="h-5 w-5" />,
+  ownership: <ArrowLeftRight className="h-5 w-5" />,
+  hypothecation: <Landmark className="h-5 w-5" />,
+  roadtax: <ReceiptText className="h-5 w-5" />,
 };
 
 const STATUS_STYLES = {
@@ -177,9 +186,9 @@ export function Hero() {
           एक ही जगह पर।
         </h1>
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
-          Challan, Insurance, PUCC और RC — अलग-अलग portal नहीं। Vehicle number
-          डालें और 3 second में साफ़ traffic-light status पाएँ। Login ki
-          zaroorat nahi.
+          Challan, Insurance, PUCC, Fitness, Ownership aur Hypothecation —
+          alag-alag portal nahi. Vehicle number डालें और 3 second में साफ़
+          traffic-light status पाएँ। Login ki zaroorat nahi.
         </p>
 
         {/* Scanner card */}
@@ -327,13 +336,28 @@ export function Hero() {
 
                 <p className="mt-5 flex items-center gap-2 text-sm font-medium text-slate-500">
                   <ScanFace className="h-4 w-4 shrink-0 text-[#2A52BE]" />
-                  चार portal, चार form — अब बस एक input में पूरी जानकारी।
+                  9 portal, 9 form — अब बस एक input में पूरी जानकारी।
                 </p>
               </div>
             )}
 
             {step === "audit" && audit && (
               <div className="space-y-4">
+                {audit.blacklisted && (
+                  <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                    <Ban className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900">
+                        Yeh vehicle blacklisted hai
+                      </p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
+                        Koi bhi naya service tab tak access nahi hoga jab tak
+                        dispute resolve na ho. {audit.blacklistReason}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -349,7 +373,7 @@ export function Hero() {
                   </span>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {audit.items.map((item) => {
                     const s = STATUS_STYLES[item.status];
                     return (
@@ -360,34 +384,34 @@ export function Hero() {
                           s.ring
                         }
                       >
-                        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2A52BE]/10 text-[#2A52BE]">
+                        <div className="flex items-center gap-2.5">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#2A52BE]/10 text-[#2A52BE]">
                             {ICONS[item.id]}
                           </span>
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-bold text-slate-900">
                               {item.label}
                             </span>
-                            <span className="block truncate text-xs text-slate-500">
+                            <span className="block truncate text-[11px] text-slate-500">
                               {item.labelHi}
                             </span>
                           </span>
-                          <span
-                            className={
-                              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold " +
-                              s.chip
-                            }
-                          >
-                            {item.status === "clear" ? (
-                              <CheckCircle2 className="h-3 w-3" />
-                            ) : item.status === "attention" ? (
-                              <Clock className="h-3 w-3" />
-                            ) : (
-                              <AlertTriangle className="h-3 w-3" />
-                            )}
-                            {item.headline}
-                          </span>
                         </div>
+                        <span
+                          className={
+                            "mt-3 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold " +
+                            s.chip
+                          }
+                        >
+                          {item.status === "clear" ? (
+                            <CheckCircle2 className="h-3 w-3" />
+                          ) : item.status === "attention" ? (
+                            <Clock className="h-3 w-3" />
+                          ) : (
+                            <AlertTriangle className="h-3 w-3" />
+                          )}
+                          {item.headline}
+                        </span>
                         <p className="mt-2 text-xs text-slate-500">
                           {item.detail}
                         </p>
@@ -426,14 +450,22 @@ export function Hero() {
                         {formatIndianRupee(audit.totalDue)}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={sendOtp}
-                      disabled={loading}
-                      className="w-full rounded-2xl bg-[#2A52BE] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
-                    >
-                      {loading ? "Sending OTP..." : "Pay Now · OTP se secure"}
-                    </button>
+                    {audit.blacklisted ? (
+                      <p className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-slate-900">
+                        <Lock className="h-4 w-4 shrink-0 text-red-600" />
+                        Payment blocked — pehle blacklist dispute resolve
+                        karein.
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={sendOtp}
+                        disabled={loading}
+                        className="w-full rounded-2xl bg-[#2A52BE] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
+                      >
+                        {loading ? "Sending OTP..." : "Pay Now · OTP se secure"}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-slate-900">
