@@ -2260,3 +2260,1501 @@ h1 {
     opacity: 0.7;
   }
 }
+/* ==========================================================================
+   PARIVAHAN SAATHI — ELITE PUBLIC DESKTOP SHELL OVERRIDES
+   Keeps the existing component styles intact while upgrading the public shell.
+   ========================================================================== */
+
+:root {
+  --saathi-header-height: 72px;
+  --saathi-sidebar-open: 224px;
+  --saathi-sidebar-collapsed: 72px;
+  --saathi-content-max: 1180px;
+  --saathi-ink: #172033;
+  --saathi-muted: #667085;
+  --saathi-blue: #2a52be;
+  --saathi-blue-dark: #21459f;
+  --saathi-border: #e3eaf3;
+  --saathi-surface: #ffffff;
+  --saathi-page: #f5f7fb;
+}
+
+/* --------------------------------------------------------------------------
+   GLOBAL PUBLIC SHELL
+   -------------------------------------------------------------------------- */
+
+body {
+  background: var(--saathi-page);
+}
+
+.saathi-app {
+  min-height: 100vh;
+  min-width: 0;
+  color: var(--saathi-ink);
+}
+
+/* --------------------------------------------------------------------------
+   TOP HEADER
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  height: var(--saathi-header-height);
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--saathi-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100;
+}
+
+.topbar-inner {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Base row layout — used on both desktop (single line) and mobile
+   (stacked, overridden inside the 1024px media query below). */
+.topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-row-primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: space-between;
+}
+.topbar-row-secondary {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.brand-lockup {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--saathi-ink);
+  text-align: left;
+}
+
+.brand-lockup:hover {
+  background: transparent;
+}
+
+.brand-lockup:focus-visible {
+  outline: 3px solid rgba(42, 82, 190, 0.18);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.brand-lockup .brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--saathi-blue);
+}
+
+.brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.brand-copy strong {
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: -0.35px;
+}
+
+.brand-copy small {
+  color: #8993a5;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.location-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #536176;
+  text-align: left;
+}
+
+.location-button:hover {
+  background: #f2f6fc;
+  border-color: #e2eaf4;
+  color: var(--saathi-blue);
+}
+
+.location-button > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.location-button small {
+  color: #929baa;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.location-button strong {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #33415a;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.topbar .icon-button {
+  width: 40px;
+  min-height: 40px;
+  border: 1px solid transparent;
+}
+
+.topbar .language-picker {
+  min-height: 38px;
+  border: 1px solid #e0e8f3;
+  border-radius: 10px;
+}
+
+.login-button {
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 0 14px;
+  background: var(--saathi-blue);
+  box-shadow: 0 5px 14px rgba(42, 82, 190, 0.16);
+}
+
+.login-button:hover {
+  background: var(--saathi-blue-dark);
+  transform: translateY(-1px);
+}
+
+.session-chip {
+  min-height: 40px;
+  border: 1px solid #d7eddf;
+}
+
+.mobile-menu-toggle {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   DESKTOP APP FRAME
+   -------------------------------------------------------------------------- */
+
+.app-frame {
+  display: grid;
+  grid-template-columns: var(--saathi-sidebar-open) minmax(0, 1fr);
+  width: 100%;
+  min-height: calc(100vh - var(--saathi-header-height));
+  margin: 0;
+  transition: grid-template-columns 0.24s ease;
+}
+
+.saathi-app.sidebar-collapsed .app-frame {
+  grid-template-columns: var(--saathi-sidebar-collapsed) minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: var(--saathi-header-height);
+  height: calc(100vh - var(--saathi-header-height));
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px 10px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid var(--saathi-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 40;
+  transition:
+    padding 0.24s ease,
+    width 0.24s ease;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 38px;
+  margin-bottom: 16px;
+}
+
+.sidebar-collapse-button {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e9f2;
+  border-radius: 9px;
+  background: #fff;
+  color: #66748a;
+  box-shadow: 0 2px 8px rgba(26, 47, 86, 0.04);
+}
+
+.sidebar-collapse-button:hover {
+  background: #f3f7fc;
+  color: var(--saathi-blue);
+  border-color: #d6e2f0;
+}
+
+.sidebar-nav {
+  min-width: 0;
+}
+
+.nav-label {
+  margin: 0 10px 8px;
+  color: #9aa3b2;
+  font-size: 9px;
+  letter-spacing: 0.09em;
+}
+
+.nav-item {
+  position: relative;
+  width: 100%;
+  min-height: 48px;
+  margin: 3px 0;
+  padding: 5px 9px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #667085;
+  text-align: left;
+  overflow: hidden;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.nav-item:hover {
+  background: #f3f7fc;
+  color: #314c81;
+  border-color: #e7edf5;
+}
+
+.nav-item-active {
+  background: #edf4ff;
+  color: var(--saathi-blue);
+  border-color: #dfeaf9;
+}
+
+.nav-item-active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--saathi-blue);
+}
+
+.nav-icon {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: currentColor;
+}
+
+.nav-item-active .nav-icon {
+  background: rgba(42, 82, 190, 0.09);
+}
+
+.nav-item-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.nav-item-content strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.nav-item-content small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aa3b2;
+  font-size: 8px;
+  line-height: 1.25;
+}
+
+.nav-item-active .nav-item-content small {
+  color: #6881b3;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-note {
+  display: flex;
+  gap: 9px;
+  padding: 11px;
+  border-radius: 11px;
+  background: #f1f6fd;
+  border: 1px solid #e2ebf8;
+}
+
+.sidebar-note strong {
+  color: #2c477a;
+  font-size: 10px;
+}
+
+.sidebar-note p {
+  margin: 3px 0 0;
+  color: #7183a0;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.mobile-location-card {
+  display: none;
+}
+
+/* Collapsed desktop state */
+
+.saathi-app.sidebar-collapsed .sidebar {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.saathi-app.sidebar-collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.saathi-app.sidebar-collapsed .nav-label,
+.saathi-app.sidebar-collapsed .nav-item-content,
+.saathi-app.sidebar-collapsed .sidebar-note {
+  display: none;
+}
+
+.saathi-app.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 5px;
+}
+
+.saathi-app.sidebar-collapsed .nav-icon {
+  flex-basis: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.saathi-app.sidebar-collapsed .nav-item-active::before {
+  left: -8px;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN CONTENT — NO EXCESSIVE DESKTOP WHITESPACE
+   -------------------------------------------------------------------------- */
+
+.main-content {
+  min-width: 0;
+  width: 100%;
+  padding: 28px clamp(22px, 3vw, 42px) 80px;
+  overflow: hidden;
+}
+
+.content-grid {
+  width: min(100%, var(--saathi-content-max));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+/* Hero is allowed to be wide, but not full-browser-width. */
+
+.home-page > .home-hero-layout,
+.home-hero-layout {
+  width: 100%;
+}
+
+.home-page {
+  gap: 20px;
+}
+
+.section-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 13px;
+}
+
+.eyebrow {
+  margin-bottom: 5px;
+  color: #8490a3;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.section-heading-row h2 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.65px;
+  line-height: 1.1;
+}
+
+/* --------------------------------------------------------------------------
+   HERO / EXISTING COMPONENT COMPATIBILITY
+   -------------------------------------------------------------------------- */
+
+.home-hero {
+  border-radius: 20px;
+  box-shadow: 0 14px 36px rgba(27, 53, 95, 0.08);
+}
+
+.hero-copy h2 {
+  max-width: 690px;
+}
+
+.hero-panel {
+  border-radius: 17px;
+}
+
+/* --------------------------------------------------------------------------
+   PRIMARY ACTIONS
+   -------------------------------------------------------------------------- */
+
+.primary-actions-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--saathi-border);
+  border-radius: 16px;
+  box-shadow: 0 7px 22px rgba(27, 53, 95, 0.045);
+}
+
+.primary-action-card {
+  min-width: 0;
+  min-height: 128px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #e7edf5;
+  border-radius: 13px;
+  background: #fff;
+  color: #172033;
+  text-align: left;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.primary-action-card:hover {
+  transform: translateY(-2px);
+  border-color: #d5e2f2;
+  box-shadow: 0 9px 22px rgba(28, 55, 99, 0.08);
+}
+
+.primary-action-card strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 16px;
+  letter-spacing: -0.35px;
+}
+
+.primary-action-card small {
+  display: block;
+  max-width: 240px;
+  margin-top: 5px;
+  color: #77849a;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--saathi-blue);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* --------------------------------------------------------------------------
+   QUICK CHECKS
+   -------------------------------------------------------------------------- */
+
+.quick-checks-card {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--saathi-border);
+  border-radius: 16px;
+  box-shadow: 0 7px 22px rgba(27, 53, 95, 0.04);
+}
+
+.quick-checks-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.quick-check-item {
+  min-width: 0;
+  min-height: 78px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #e5ebf3;
+  border-radius: 12px;
+  background: #fbfcfe;
+  color: #172033;
+  text-align: left;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.quick-check-item:hover {
+  background: #fff;
+  border-color: #d6e2f0;
+  transform: translateY(-1px);
+}
+
+.quick-check-item > div {
+  min-width: 0;
+}
+
+.quick-check-item strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.quick-check-item small {
+  display: block;
+  margin-top: 4px;
+  color: #7c8798;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.quick-check-item > span {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: #edf4fd;
+  color: var(--saathi-blue);
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   PERSONAS / VISION
+   -------------------------------------------------------------------------- */
+
+.persona-section,
+.future-section {
+  padding: 18px;
+  border: 1px solid var(--saathi-border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.persona-card {
+  min-height: 138px;
+  padding: 16px;
+  border: 1px solid #e6ebf3;
+  border-radius: 13px;
+}
+
+.persona-card h3 {
+  margin: 20px 0 6px;
+  font-size: 17px;
+  letter-spacing: -0.4px;
+}
+
+.persona-card p {
+  margin: 0;
+  color: #728096;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.persona-tag {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f1f5fa;
+  color: #65748a;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.persona-blue {
+  background: linear-gradient(145deg, #f8fbff, #eef5ff);
+  border-color: #dfeaf9;
+}
+
+.persona-green {
+  background: linear-gradient(145deg, #f8fcfa, #eef8f2);
+  border-color: #dfeee4;
+}
+
+.persona-gold {
+  background: linear-gradient(145deg, #fffdf8, #faf5e9);
+  border-color: #eee5ce;
+}
+
+.future-section {
+  background: #202d45;
+  border-color: #354762;
+  color: #fff;
+}
+
+.future-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.future-heading .eyebrow {
+  color: #91a3c0;
+}
+
+.future-heading h2 {
+  margin: 0;
+  font-size: 23px;
+  letter-spacing: -0.6px;
+}
+
+.future-heading p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 7px 0 0;
+  color: #b9c6d9;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.round-status {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #415675;
+  border-radius: 999px;
+  color: #c7d7f2;
+  background: #273852;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.future-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.future-item {
+  min-height: 155px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #354762;
+  border-radius: 12px;
+  background: #202d45;
+}
+
+.future-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 13px;
+  border-radius: 9px;
+  background: #30466c;
+  color: #b9d1ff;
+}
+
+.future-item strong {
+  font-size: 10px;
+}
+
+.future-item p {
+  margin: 5px 0 10px;
+  color: #b8c4d6;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.coming-soon {
+  margin-top: auto;
+  color: #91d1aa;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   FOUNDATION / PLACEHOLDER VIEWS
+   -------------------------------------------------------------------------- */
+
+.foundation-view {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(27, 53, 95, 0.06);
+}
+
+.placeholder-icon {
+  width: 44px;
+  height: 44px;
+}
+
+/* --------------------------------------------------------------------------
+   LEARN HUB
+   -------------------------------------------------------------------------- */
+
+.learn-hub-frame {
+  width: min(100%, var(--saathi-content-max));
+  min-height: calc(100vh - 150px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   AI SAATHI — keep floating assistant above shell
+   -------------------------------------------------------------------------- */
+
+.saathi-trigger {
+  z-index: 90;
+}
+
+/* --------------------------------------------------------------------------
+   MOBILE BOTTOM NAV
+   -------------------------------------------------------------------------- */
+
+.bottom-nav {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   MOBILE / TABLET
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .main-content {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .future-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quick-checks-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    height: 68px;
+    padding: 0 18px;
+  }
+
+  .app-frame {
+    display: block;
+    min-height: calc(100vh - 68px);
+  }
+
+  .saathi-app.sidebar-collapsed .app-frame {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 80px;
+    left: 12px;
+    right: auto;
+    width: min(82vw, 320px);
+    height: auto;
+    max-height: calc(100vh - 104px);
+    padding: 16px 12px;
+    display: none;
+    overflow-y: auto;
+    border: 1px solid #e0e7f0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 18px 42px rgba(25, 43, 75, 0.18);
+  }
+
+  .sidebar-open {
+    display: flex;
+  }
+
+  .sidebar-header {
+    justify-content: flex-end;
+  }
+
+  .desktop-sidebar-control,
+  .sidebar-collapse-button {
+    display: none;
+  }
+
+  .mobile-location-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #e5ebf3;
+    border-radius: 11px;
+    background: #f8faff;
+    color: #536176;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .mobile-location-card span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-location-card button {
+    border: 0;
+    background: transparent;
+    color: var(--saathi-blue);
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .saathi-app.sidebar-collapsed .sidebar {
+    padding: 16px 12px;
+  }
+
+  .saathi-app.sidebar-collapsed .nav-label,
+  .saathi-app.sidebar-collapsed .nav-item-content,
+  .saathi-app.sidebar-collapsed .sidebar-note {
+    display: block;
+  }
+
+  .saathi-app.sidebar-collapsed .nav-item {
+    justify-content: flex-start;
+    padding: 5px 9px;
+  }
+
+  .saathi-app.sidebar-collapsed .nav-icon {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .main-content {
+    padding: 26px 20px 92px;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    padding: 6px 6px max(6px, env(safe-area-inset-bottom));
+    border-top: 1px solid #e1e8f0;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .bottom-nav button {
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #7b8699;
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  .bottom-nav button:hover,
+  .bottom-nav-active {
+    background: #edf4fd !important;
+    color: var(--saathi-blue) !important;
+  }
+
+  .learn-hub-frame {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .persona-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .brand-copy small {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 3px;
+  }
+
+  .topbar .language-picker {
+    min-height: 36px;
+  }
+
+  .login-button {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .main-content {
+    padding: 20px 14px 90px;
+  }
+
+  .content-grid {
+    gap: 15px;
+  }
+
+  .home-hero {
+    border-radius: 17px;
+  }
+
+  .primary-actions-panel,
+  .quick-checks-grid,
+  .persona-grid,
+  .future-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-action-card {
+    min-height: 104px;
+  }
+
+  .quick-check-item {
+    min-height: 70px;
+  }
+
+  .future-heading {
+    display: block;
+  }
+
+  .round-status {
+    display: inline-flex;
+    margin-top: 12px;
+  }
+
+  .learn-hub-frame {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-lockup .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand-copy strong {
+    font-size: 13px;
+  }
+
+  .login-button {
+    width: 38px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .section-heading-row {
+    margin-bottom: 10px;
+  }
+
+  .section-heading-row h2 {
+    font-size: 21px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   REDUCED MOTION
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-frame,
+  .sidebar,
+  .nav-item,
+  .primary-action-card,
+  .quick-check-item,
+  .login-button {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   PARIVAHAN SAATHI — RESPONSIVE SHELL FINAL PASS
+   --------------------------------------------------------------------------
+   Purely additive overrides. Nothing above this line is renamed or removed.
+   These rules win ties through the normal CSS cascade (same specificity,
+   later source wins) because this block is appended last — existing
+   component classes and the desktop shell stay exactly as they were.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Layering scale
+   content < header < sidebar/drawer < bottom-nav < floating actions < modal
+   -------------------------------------------------------------------------- */
+:root {
+  --z-header: 20;
+  --z-sidebar: 45;
+  --z-bottom-nav: 60;
+  --z-floating: 75;
+  --z-modal: 100;
+}
+
+.topbar {
+  z-index: var(--z-header);
+}
+.sidebar {
+  z-index: var(--z-sidebar);
+}
+.bottom-nav {
+  z-index: var(--z-bottom-nav);
+}
+.saathi-trigger,
+.floating-jury-button,
+.floating-actions {
+  z-index: var(--z-floating);
+}
+
+/* Tailwind's z-50 utility (Dialog / LocationPicker / Jury modal overlays)
+   ships inside a Tailwind v4 @layer, so it is a "layered" style. This rule
+   lives outside any @layer, and unlayered author styles always win over
+   layered ones — so every modal/picker in the app stays above the shell
+   without needing to touch the component files. */
+.z-50 {
+  z-index: var(--z-modal) !important;
+}
+
+/* --------------------------------------------------------------------------
+   1 & 2. Desktop shell untouched. Mobile: sidebar becomes a secondary
+   drawer only — bottom nav is the primary navigation.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  /* The 5 primary destinations already live in the bottom nav — don't
+     repeat them inside the drawer. */
+  .desktop-only-nav {
+    display: none;
+  }
+
+  /* The <aside> is always in the DOM (React only toggles the class), so a
+     transform/opacity reveal gives a smooth slide instead of the instant
+     display:none swap. */
+  .sidebar {
+    display: flex;
+    transform: translateX(-16px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.22s ease,
+      opacity 0.22s ease,
+      visibility 0.22s;
+  }
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Dim the shell behind the open drawer. This is a visual layer only —
+     closing still happens via the menu button or the existing Escape-key
+     handler in App.jsx, since a CSS pseudo-element can't carry an onClick. */
+  .app-frame.mobile-navigation-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: calc(var(--z-sidebar) - 1);
+    pointer-events: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Mobile bottom navigation — exactly 5 items, safe-area aware, clear
+   active state, no Quick Check.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .bottom-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .bottom-nav button {
+    position: relative;
+  }
+  .bottom-nav-active::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--saathi-blue);
+  }
+  .main-content {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Mobile header — two rows, no drawer. Sidebar/hamburger fully removed;
+   bottom-nav is the only mobile navigation.
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .mobile-menu-toggle,
+  .sidebar,
+  .app-frame.mobile-navigation-open::before {
+    display: none !important;
+  }
+
+  .topbar {
+    height: auto;
+    padding: 10px 16px;
+  }
+
+  .topbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .topbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .topbar-row-secondary {
+    padding-top: 8px;
+    border-top: 1px solid var(--saathi-border);
+  }
+
+  .topbar-actions-primary {
+    gap: 6px;
+  }
+
+  .location-button {
+    display: inline-flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .topbar-row-secondary .language-picker {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .brand-copy small {
+    display: none;
+  }
+  .location-button strong {
+    max-width: none;
+    font-size: 12px;
+  }
+  .login-button {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6 & 10. Hero-first mobile spacing — tighten space above/below the hero
+   without touching Hero.jsx itself.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .main-content {
+    padding-top: 16px;
+  }
+  .content-grid,
+  .home-page {
+    gap: 14px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Quick Check — unused/dead UI, fully disabled, no reserved space
+   -------------------------------------------------------------------------- */
+.quick-checks-card,
+.quick-checks-grid,
+.quick-check-item {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   8 & 9. Floating actions — AI Saathi (existing) + Jury, stacked, safe-area
+   aware, never blocking content.
+   -------------------------------------------------------------------------- */
+.floating-actions {
+  pointer-events: none;
+}
+.floating-actions > * {
+  pointer-events: auto;
+}
+
+.floating-jury-button {
+  position: fixed;
+  right: 24px;
+  bottom: 86px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: var(--saathi-ink, #172033);
+  color: #f2a93b;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+.floating-jury-button:hover {
+  background: #22304d;
+  transform: translateY(-1px);
+}
+.floating-jury-button:focus-visible {
+  outline: 3px solid rgba(242, 169, 59, 0.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+  .saathi-trigger {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+  .floating-jury-button {
+    right: 16px;
+    bottom: calc(138px + env(safe-area-inset-bottom));
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .floating-jury-button span {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .floating-jury-button {
+    right: 14px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Focus-visible coverage for the new/updated interactive elements
+   -------------------------------------------------------------------------- */
+.bottom-nav button:focus-visible,
+.nav-item:focus-visible,
+.sidebar-collapse-button:focus-visible,
+.location-button:focus-visible {
+  outline: 3px solid rgba(42, 82, 190, 0.28);
+  outline-offset: 2px;
+}
+
+/* Reduced motion — cover the new transition-bearing elements */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .floating-jury-button,
+  .app-frame.mobile-navigation-open::before {
+    transition: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Language chip — matches location-button's shape/spacing
+   -------------------------------------------------------------------------- */
+.language-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #536176;
+}
+.language-chip:hover {
+  background: #f2f6fc;
+  border-color: #e2eaf4;
+  color: var(--saathi-blue);
+}
+.language-chip > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.language-chip small {
+  color: #929baa;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.language-chip strong {
+  color: #33415a;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.language-chip select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+}
+
+/* Row 2 (mobile) — location + language as matching pill chips */
+@media (max-width: 1024px) {
+  .topbar-row-secondary .location-button,
+  .topbar-row-secondary .language-chip {
+    background: #f5f7fb;
+    border-color: var(--saathi-border);
+    border-radius: 12px;
+  }
+  .topbar-row-secondary .location-button {
+    flex: 1 1 auto;
+  }
+  .topbar-row-secondary .language-chip {
+    flex: 0 0 auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Unified chip look for Location + Language — applies on ALL screen sizes
+   -------------------------------------------------------------------------- */
+.location-button,
+.language-chip {
+  background: #f5f7fb;
+  border: 1px solid var(--saathi-border);
+  border-radius: 12px;
+}
+.location-button:hover,
+.language-chip:hover {
+  background: #ebf1fb;
+  border-color: #cfe0f5;
+  color: var(--saathi-blue);
+}
