@@ -112,6 +112,35 @@ export const copy = {
           detail: "A structured Saathi and Vahan library with See all paths.",
         },
       ],
+
+      // 🪪 सारथी मोस्ट आस्क्ड कार्ड्स डेटा
+      sarathiTitle: "Sarathi Hub: Most Asked Services",
+      sarathiViewAll: "View All 15+ Paths",
+      sarathiServices: [
+        { title: "New Learner's Licence", subtitle: "Apply via faceless Aadhaar e-KYC securely from home in 5 minutes.", stat: "Most Asked", id: "2.1.1" },
+        { title: "Mock Sign Quiz Game", subtitle: "Practice road signs trivia and test your score before the real RTO exam.", stat: "Gamified", id: "2.1.7" },
+        { title: "Driving Licence Renewal", subtitle: "Extend your expired smart-card validation online with zero document lag.", stat: "Renewal", id: "2.2.3" },
+        { title: "Change of Address Registry", subtitle: "Sync new residential details and fetch fresh profiles instantly.", stat: "Profile Mod", id: "2.3.1" }
+      ],
+      // 🚗 वाहन मोस्ट आस्क्ड कार्ड्स डेटा
+      vahanTitle: "Vahan Hub: Most Asked Services",
+      vahanViewAll: "View All 15+ Paths",
+      vahanServices: [
+        { title: "Used Car RC Transfer", subtitle: "Transfer vehicle ownership completely online and clear asset registries.", stat: "Most Asked", id: "3.3.1" },
+        { title: "15-Year RC Fitness Renewal", subtitle: "Mandatory lifecycle test slots for old machinery to pass green tax gates.", stat: "Compliance", id: "3.2.1" },
+        { title: "Issue Duplicate RC Card", subtitle: "Order an official smart-card replacement if your original certificate is lost.", stat: "Asset Copy", id: "3.1.2" },
+        { title: "Loan (Hypothecation) Removal", subtitle: "Terminate bank loan entries instantly via secure digital bank NOC flags.", stat: "Finance", id: "3.4.2" }
+      ],
+      // ⚖️ रूल्स एंड रेगुलेशंस रो डेटा
+      rulesEyebrow: "National Safety Codes",
+      rulesTitle: "Citizen Rights, Rules & Regulations",
+      rulesText: "Know your baseline legal privileges on national highways to completely eliminate arbitrary cash extraction by agents.",
+      rulesBadge: "Verified Law ✓",
+      regulations: [
+        { title: "The Good Samaritan Law Protection", detail: "Help road accident victims and take them to hospitals safely. The state guarantees complete legal safety: police or medical staff cannot legally force you to disclose credentials." },
+        { title: "National DigiLocker Validity Mandate", detail: "Under the Central Motor Vehicles Rules, displaying your active digital DL or vehicle RC ledger screen on your smartphone inside DigiLocker is 100% legally equivalent to physical plastic cards." },
+        { title: "Transparent High-Traffic Penalty lookup", detail: "Bypass corruption loops on highways. Know the true legal rates instantly: Driving without Helmet = ₹1,000; Driving without Seatbelt = ₹1,000; Blocking Ambulance = ₹10,000." }
+      ]
     },
 
     authTitle: "Continue with your ID",
@@ -374,6 +403,32 @@ export const copy = {
           detail: "Saathi aur Vahan ki structured library with See all paths.",
         },
       ],
+
+      sarathiTitle: "Sarathi Hub: Most Asked Services",
+      sarathiViewAll: "View All 15+ Paths",
+      sarathiServices: [
+        { title: "New Learner's Licence", subtitle: "Ghar baithe faceless Aadhaar e-KYC ke through safely 5 minutes mein apply karein.", stat: "Most Asked", id: "2.1.1" },
+        { title: "Mock Sign Quiz Game", subtitle: "Real RTO exam se pehle road signs ki trivia practice karein aur score check karein.", stat: "Gamified", id: "2.1.7" },
+        { title: "Driving Licence Renewal", subtitle: "Apne expired smart-card ki validation bina kisi document lag ke online extend karein.", stat: "Renewal", id: "2.2.3" },
+        { title: "Change of Address Registry", subtitle: "Aadhaar profile ke through naya residential address instantly sync aur update karein.", stat: "Profile Mod", id: "2.3.1" }
+      ],
+      vahanTitle: "Vahan Hub: Most Asked Services",
+      vahanViewAll: "View All 15+ Paths",
+      vahanServices: [
+        { title: "Used Car RC Transfer", subtitle: "Vehicle ownership completely online transfer karein aur asset registries clear karein.", stat: "Most Asked", id: "3.3.1" },
+        { title: "15-Year RC Fitness Renewal", subtitle: "Purani gaadiyo ke liye mandatory lifecycle fitness slots book karein aur green tax check karein.", stat: "Compliance", id: "3.2.1" },
+        { title: "Issue Duplicate RC Card", subtitle: "Agar original certificate kho gaya hai ya chori ho gaya hai, toh official smart-card replacement order karein.", stat: "Asset Copy", id: "3.1.2" },
+        { title: "Loan (Hypothecation) Removal", subtitle: "Bank ka loan clear hone par bank ki digital NOC ke through instantly hypothecation hatayein.", stat: "Finance", id: "3.4.2" }
+      ],
+      rulesEyebrow: "National Safety Codes",
+      rulesTitle: "Citizen Rights, Rules & Regulations",
+      rulesText: "National highways par apne legal rights aur privileges ko samjhein taaki agents aur daloalo ke cash extraction se bach sakein.",
+      rulesBadge: "Verified Law ✓",
+      regulations: [
+        { title: "The Good Samaritan Law Protection", detail: "Road accident victims ki bina kisi darr ke madad karein aur hospital pahunchayein. State complete legal safety guarantee karta hai: police aapko identity disclose karne ke liye force nahi kar sakti." },
+        { title: "National DigiLocker Validity Mandate", detail: "Central Motor Vehicles Rules ke mutabik, smartphone par DigiLocker ke andar apna active digital DL ya vehicle RC dikhana 100% legally valid hai." },
+        { title: "Transparent High-Traffic Penalty lookup", detail: "Highways par corruption ko bypass karein. Real legal fine rates jaanein: Bina Helmet = ₹1,000; Bina Seatbelt = ₹1,000; Ambulance ko block karna = ₹10,000." }
+      ]
     },
 
     authTitle: "Apni ID se continue karein",
@@ -637,6 +692,32 @@ export const copy = {
             "साथी और वाहन की व्यवस्थित लाइब्रेरी के साथ सभी रास्ते देखें।",
         },
       ],
+
+      sarathiTitle: "सारथी हब: सबसे ज़्यादा पूछे जाने वाले कार्य",
+      sarathiViewAll: "सभी १५+ सेवाएं देखें",
+      sarathiServices: [
+        { title: "नया लर्नर लाइसेंस (LL)", subtitle: "बिना किसी दलाल के घर बैठे फेसलेस आधार ई-केवाईसी के माध्यम से सिर्फ ५ मिनट में आवेदन करें।", stat: "अति आवश्यक", id: "2.1.1" },
+        { title: "मॉक ट्रैफिक साइन क्विज़", subtitle: "असली आरटीओ परीक्षा से पहले सड़क संकेतों के लाइव गेम का अभ्यास करें और अपना स्कोर जांचें।", stat: "गेमीफाइड", id: "2.1.7" },
+        { title: "ड्राइविंग लाइसेंस नवीनीकरण", subtitle: "बिना किसी दस्तावेजी देरी के अपने एक्सपायर्ड पक्के लाइसेंस की वैधता को ऑनलाइन बढ़ाएं।", stat: "रिन्यूअल", id: "2.2.3" },
+        { title: "घर का पता बदलें", subtitle: "आधार प्रोफाइल का उपयोग करके अपने लाइसेंस पर नया आवासीय पता तुरंत सिंक और अपडेट करें।", stat: "प्रोफाइल बदलें", id: "2.3.1" }
+      ],
+      vahanTitle: "वाहन हब: सबसे ज़्यादा पूछे जाने वाले कार्य",
+      vahanViewAll: "सभी १५+ सेवाएं देखें",
+      vahanServices: [
+        { title: "पुरानी गाड़ी की आरसी ट्रांसफर", subtitle: "वाहन के मालिकाना हक को पूरी तरह से ऑनलाइन ट्रांसफर करें और आरसी रिकॉर्ड को साफ करें।", stat: "अति आवश्यक", id: "3.3.1" },
+        { title: "१५-वर्षीय आरसी फिटनेस रिन्यूअल", subtitle: "पुरानी गाड़ियों के लिए अनिवार्य आरटीओ फिटनेस स्लॉट बुक करें और ग्रीन टैक्स की गणना करें।", stat: "कम्प्लायंस", id: "3.2.1" },
+        { title: "डुप्लिकेट आरसी कार्ड जारी करें", subtitle: "यदि आपका मूल आरसी सर्टिफिकेट खो गया है या चोरी हो गया है, तो आधिकारिक स्मार्ट-कार्ड रिप्लेसमेंट ऑर्डर करें।", stat: "आरसी कॉपी", id: "3.1.2" },
+        { title: "बैंक लोन (HPT) हटाएँ", subtitle: "बैंक का लोन चुकता होने पर बैंक की डिजिटल एनओसी के माध्यम से आरसी से हाइपोथेकेशन तुरंत हटाएं।", stat: "फाइनेंस", id: "3.4.2" }
+      ],
+      rulesEyebrow: "राष्ट्रीय सुरक्षा कोड",
+      rulesTitle: "नागरिक अधिकार, नियम और कानून",
+      rulesText: "राष्ट्रीय राजमार्गों पर अपने कानूनी अधिकारों को समझें ताकि दलालों और रिश्वतखोरी के जाल से पूरी तरह मुक्त रह सकें।",
+      rulesBadge: "सत्यापित कानून ✓",
+      regulations: [
+        { title: "द गुड समैरिटन (नेक व्यक्ति) कानून", detail: "सड़क दुर्घटना पीड़ितों की बिना किसी डर के मदद करें और अस्पताल पहुंचाएं। कानून आपको पूरी सुरक्षा देता है: पुलिस या डॉक्टर आपको पहचान बताने के लिए मजबूर नहीं कर सकते।" },
+        { title: "डिजिलॉकर दस्तावेज़ों की कानूनी मान्यता", detail: "केंद्रीय मोटर वाहन नियमों के तहत, हाईवे पर स्मार्टफोन में डिजिलॉकर या एम-परिवहन ऐप के अंदर अपना डिजिटल डीएल या आरसी दिखाना १००% कानूनी रूप से मान्य है।" },
+        { title: "पारदर्शी ट्रैफिक जुर्माना सूची", detail: "राजमार्गों पर अवैध वसूली से बचें। असली कानूनी जुर्माना दरें तुरंत जानें: बिना हेलमेट = ₹१,०००; बिना सीटबेल्ट = ₹१,०००; एम्बुलेंस रोकना = ₹१०,०००।" }
+      ]
     },
 
     authTitle: "अपनी पहचान से आगे बढ़ें",

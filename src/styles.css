@@ -3758,3 +3758,543 @@ body {
   border-color: #cfe0f5;
   color: var(--saathi-blue);
 }
+
+/* =========================================================================
+   ⚡ MODERN SAAS WORKSPACE / NEXT-GEN INTERFACE STYLES
+   ========================================================================= */
+
+.app-workspace-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 🟢 Top Modern Command Header */
+.app-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 1.5rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.app-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2563EB;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #EFF6FF;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid #BFDBFE;
+  margin-bottom: 0.5rem;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.app-main-heading {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.03em;
+}
+
+/* 🎛️ Segmented Control (App Tabs) */
+.segmented-control {
+  display: flex;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.segment-btn {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.segment-btn.active {
+  background: #FFFFFF;
+  color: #0F172A;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* 💡 Modern Floating Advisory Banner */
+.app-advisory-floating {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+}
+
+.advisory-icon-glow {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  backdrop-filter: blur(8px);
+}
+
+.app-advisory-floating h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.app-advisory-floating p {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+/* 📦 Workspace Section Panel */
+.app-section-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.panel-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #EFF6FF;
+  color: #2563EB;
+  text-transform: uppercase;
+}
+
+.panel-tag.gold {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.group-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* 💳 Grid & App Service Tile */
+.app-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 1rem;
+}
+
+.app-service-tile {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 140px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-service-tile:hover {
+  border-color: #2563EB;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.12);
+}
+
+.app-tile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.app-tile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.app-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.app-badge.online { background: #ECFDF5; color: #059669; }
+.app-badge.interactive { background: #F3E8FF; color: #7E22CE; }
+.app-badge.pay { background: #EFF6FF; color: #2563EB; }
+.app-badge.rto { background: #FFF7ED; color: #EA580C; }
+
+.app-tile-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.app-tile-desc {
+  font-size: 0.8rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.app-tile-action {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px stroke #F8FAFC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94A3B8;
+  transition: color 0.2s;
+}
+
+.app-service-tile:hover .app-tile-action {
+  color: #2563EB;
+}
+
+.app-service-tile:hover .arrow {
+  transform: translateX(4px);
+  transition: transform 0.2s;
+}
+
+/* ... baki purana CSS code ... */
+
+.future-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 13px;
+  border-radius: 9px;
+  background: #30466c;
+}
+
+/* ==========================================================================
+   AAPKA NAYA CSS PATCH (YAHAN DALEGA)
+   ========================================================================== */
+
+/* Container Layout */
+.app-workspace-container {
+  padding: 1 rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header & Live Indicator Fixes */
+.app-top-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.app-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #2563eb;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+  animation: pulse 1.6s infinite;
+}
+
+.app-main-heading {
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;
+  margin-top: 0.5rem;
+}
+
+/* Segmented Control - Mobile Horizontally Scrollable */
+.segmented-control-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.segmented-control-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented-control {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 12px;
+  gap: 0.25rem;
+  min-width: max-content;
+}
+
+.segment-btn {
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.segment-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Floating Advisory Card */
+.app-advisory-floating {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.15rem;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 1.75rem;
+}
+
+.advisory-icon-glow {
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.advisory-content h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #f8fafc;
+}
+
+.advisory-content p {
+  font-size: 0.825rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+/* Workstation Grid & Cards */
+.app-tiles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .app-tiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-tiles-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.app-service-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.app-service-tile:active {
+  transform: scale(0.98);
+}
+
+.mt-mobile-4 {
+  margin-top: 1.25rem;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+/* ==========================================================================
+   DESKTOP FIX: Header Alignment, Brand Blue Heading & Vertical Spacing
+   ========================================================================== */
+
+/* 1. Header Layout & Brand Blue Color Fix */
+.app-top-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alignment ko left par lock karne ke liye */
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  width: 100%;
+}
+
+.app-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.app-main-heading {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #2563eb !important; /* Brand Blue Color */
+  margin: 0;
+  text-align: left;
+}
+
+/* 2. Desktop Responsive Row Alignment */
+@media (min-width: 768px) {
+  .app-top-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .app-title-group {
+    width: auto;
+  }
+
+  .segmented-control-wrapper {
+    width: auto;
+  }
+}
+
+/* 3. Section Panels & Cards Vertical Spacing Fix */
+.app-grid-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Stage 01 aur Stage 02 ke beech space */
+}
+
+.app-section-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Section ke interior elements me vertical gap */
+}
+
+.panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Label aur Card Grid ke beech space */
+}
+
+/* Cards Vertical Gap inside Grid */
+.app-tiles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem; /* Cards ke aapas me horizontal aur vertical gaps */
+}
+
+@media (min-width: 640px) {
+  .app-tiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-tiles-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
