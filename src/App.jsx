@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 
 import { AuthFlow } from "./components/AuthFlow";
-import { AuthenticatedWorkspace } from "./components/AuthenticatedWorkspace";
+import AccountDashboard from "./components/Account/AccountDashboard";
 import { Hero } from "./components/Hero";
 import { AISaathi } from "./components/AISaathi";
 import { LanguagePicker } from "./components/LanguagePicker";
@@ -836,7 +836,7 @@ function App() {
       </header>
 
       {session ? (
-        <AuthenticatedWorkspace
+        <AccountDashboard
           session={session}
           language={language}
           onSignOut={() => {
@@ -1012,7 +1012,12 @@ function App() {
                 </div>
               )}
 
-              {/* 6. Fallback View (Valid Screens ke bahar koi unexpected view aaye tabhi load hoga) */}
+              {/* 6. Jury / Judge Panel View */}
+              {activeView === "judge_panel" && (
+                <JudgeDashboard language={language} />
+              )}
+
+              {/* 7. Fallback View (Valid Screens ke bahar koi unexpected view aaye tabhi load hoga) */}
               {activeView !== "home" &&
                 activeView !== "driver" &&
                 activeView !== "vehicle" &&
