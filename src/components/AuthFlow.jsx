@@ -9,33 +9,53 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { DEMO_NEW_CITIZEN, MOCK_SYSTEM_DB } from "../data/mockSystem";
+import { MOCK_SYSTEM_DB } from "../data/mockSystem";
 import { copy } from "../data/copy";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-const PERSONAS = {
-  new: {
-    kind: "new",
-    name: "Himanshu",
-    identifiers: {
-      phone: "9876543210",
-      aadhaar: "234567891098",
-      pan: "ABCDE1234F",
-      dl: "UP1420240012345",
-    },
+const PERSONA_IDENTIFIERS = {
+  ananyaSharma: {
+    phone: "9876547812",
+    aadhaar: "234567891234",
+    pan: "ANSPS1234A",
   },
-  existing: {
-    kind: "existing",
-    name: "Varun",
-    identifiers: {
-      phone: "8765432109",
-      aadhaar: "345678912109",
-      pan: "PQRSX5678K",
-      dl: "DL1420230098765",
-    },
+  rameshSrivastava: {
+    phone: "9812345670",
+    aadhaar: "345678912345",
+    pan: "RMSPS5678B",
+    dl: "UP15420220034521",
+  },
+  surajVerma: {
+    phone: "9911223344",
+    aadhaar: "456789123456",
+    pan: "SRVPV9012C",
+  },
+  rajeshKumar: {
+    phone: "9876543456",
+    aadhaar: "567891234567",
+    pan: "RJKPK3456D",
+    dl: "DL1420240098765",
+  },
+  rahulMalhotra: {
+    phone: "9955667788",
+    aadhaar: "678912345678",
+    pan: "RHLPM7890E",
+    dl: "LL16202600445",
   },
 };
+
+const PERSONAS = Object.fromEntries(
+  Object.entries(PERSONA_IDENTIFIERS).map(([userId, identifiers]) => [
+    userId,
+    {
+      kind: "existing",
+      userId,
+      name: MOCK_SYSTEM_DB.users[userId].fullName,
+      identifiers,
+    },
+  ]),
+);
 
 const FIELD_ICON = {
   phone: Phone,
@@ -66,6 +86,18 @@ function findPersona(raw) {
   );
 }
 
+function buildProfile(userId) {
+  const user = MOCK_SYSTEM_DB.users[userId] ?? MOCK_SYSTEM_DB.users.ananyaSharma;
+  return {
+    fullName: user.fullName,
+    dob: user.dob,
+    address: user.address,
+    registeredMobile: user.mobileMasked,
+    avatarSeed: user.avatarSeed,
+    personaTag: user.personaTag,
+  };
+}
+
 export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
   const t = copy[language] ?? copy.hinglish;
 
@@ -89,7 +121,8 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
     setPersona(
       matched ?? {
         kind: "new",
-        name: PERSONAS.new.name,
+        userId: "ananyaSharma",
+        name: PERSONAS.ananyaSharma.name,
         identifiers: { [detectedType ?? "phone"]: value },
       },
     );
@@ -102,10 +135,8 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
     if (otp !== MOCK_OTP) return setError(t.invalidOtp);
     onAuthenticated({
       kind: persona.kind,
-      profile:
-        persona.kind === "existing"
-          ? MOCK_SYSTEM_DB.existingOfflineUser.profile
-          : DEMO_NEW_CITIZEN,
+      userId: persona.userId,
+      profile: buildProfile(persona.userId),
       method: detectedType ?? "phone",
     });
   };
@@ -180,7 +211,7 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
                   <div className="identity-persona-head">
                     <span className="persona-tag">
                       <UserRound size={11} style={{ verticalAlign: "-2px" }} />{" "}
-                      {key === "existing" ? t.existingUser : t.newUser}
+                      {p.kind === "existing" ? t.existingUser : t.newUser}
                     </span>
                     <b>{p.name}</b>
                   </div>
