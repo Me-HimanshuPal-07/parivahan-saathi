@@ -102,6 +102,55 @@ const INTENT_COPY = {
 const getStatus = (status) =>
   STATUS_STYLES[status] || STATUS_STYLES.clear;
 
+// Skeleton placeholder for a single audit metric while its own
+// (simulated) government-server call is still in flight. Every item
+// fetches independently and in parallel — this is what an item looks
+// like before its own response has arrived.
+function MetricSkeletonCard() {
+  return (
+    <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="h-7 w-7 rounded-lg bg-slate-100" />
+        <span className="h-1.5 w-1.5 rounded-full bg-slate-200" />
+      </div>
+      <div className="mt-2.5 h-2.5 w-4/5 rounded bg-slate-100" />
+      <div className="mt-1.5 h-2 w-2/5 rounded bg-slate-100" />
+      <div className="mt-1.5 h-2 w-3/5 rounded bg-slate-100" />
+    </div>
+  );
+}
+
+// Small "verified" burst used right after OTP success — a filled green
+// check that scales/fades in, with a soft pulse ring behind it. Mirrors
+// the same emerald ShieldCheck language used on the final success screen.
+function AnimatedSuccessCheck({ label }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setShow(true), 30);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
+      <div className="relative flex h-16 w-16 items-center justify-center">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-30" />
+        <span
+          className={`relative flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100 text-emerald-600 transition-all duration-500 ease-out ${
+            show ? "scale-100 opacity-100" : "scale-50 opacity-0"
+          }`}
+        >
+          <ShieldCheck className="h-8 w-8" />
+        </span>
+      </div>
+      <div>
+        <h3 className="text-base font-black text-slate-950">Verified</h3>
+        {label && <p className="mt-1 text-xs text-slate-500">{label}</p>}
+      </div>
+    </div>
+  );
+}
+
 /* =========================================================================
    RESPONSIVE RESULT SHEET WRAPPER
    ========================================================================= */
@@ -113,9 +162,43 @@ function ResponsiveResultSheet({
   children,
   dismissible = true,
 }) {
+  // Must match the app shell's fixed bottom nav bar height (the
+  // Saathi / Driver services / Vehicle / Learn Hub / Help & support
+  // strip). Update this if that bar's height ever changes.
+  const MOBILE_BOTTOM_NAV_HEIGHT = 64;
+  const MOBILE_BREAKPOINT = 640; // Tailwind's `sm`
+
+  // On mobile we track the real visible viewport (visualViewport, which
+  // shrinks live when the keyboard opens — unlike dvh) minus the bottom
+  // nav bar's height, and size the sheet to exactly that. This keeps the
+  // sheet's bottom edge — and any buttons near it — always above both
+  // the keyboard AND the bottom nav bar, never hidden behind either.
+  // On desktop/tablet (sm and up) this is skipped entirely; the sm:
+  // classes below take over unmodified.
+  const [availableHeight, setAvailableHeight] = useState(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setAvailableHeight(isMobile ? vv.height - MOBILE_BOTTOM_NAV_HEIGHT : null);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+      className="fixed inset-x-0 top-0 bottom-16 z-[9999] flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-[2px] sm:inset-0 sm:items-center sm:p-6"
+      style={availableHeight ? { height: `${Math.max(availableHeight, 0)}px` } : undefined}
       onClick={(event) => {
         if (dismissible && event.target === event.currentTarget) onClose();
       }}
@@ -124,11 +207,16 @@ function ResponsiveResultSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="hero-result-title"
-        className="flex min-h-0 max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-[26px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] sm:max-h-[86dvh] sm:max-w-3xl sm:rounded-[28px]"
+        className="flex min-h-0 max-h-[60dvh] w-full flex-col overflow-hidden rounded-t-[26px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] sm:max-h-[86dvh] sm:max-w-3xl sm:rounded-[28px]"
+        style={
+          availableHeight
+            ? { maxHeight: `${Math.max(Math.round(availableHeight * 0.6), 0)}px` }
+            : undefined
+        }
       >
-        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-slate-300 sm:hidden" />
+        <div className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-slate-300 sm:hidden" />
 
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-4 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="min-w-0">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-600">
               {eyebrow}
@@ -177,7 +265,7 @@ function StatusChip({ status }) {
 /* =========================================================================
    COMPLETE 9-POINT VEHICLE AUDIT RESULT
    ========================================================================= */
-function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loading }) {
+function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loading, metricsLoaded = {} }) {
   const challanAmount =
     data?.activeChallan?.amount != null ? Number(data.activeChallan.amount) : 0;
 
@@ -194,6 +282,11 @@ function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loadi
     fuel: { label: "9. Bio-Fuel / Fuel Tag", headline: "BS6 Petrol", detail: "Compliant with E20 Norms", status: "clear" },
     ...(data.metrics || {}),
   };
+
+  // The challan banner/action is only safe to offer once the challan
+  // server itself has actually responded — not the other 8, and not a
+  // guess made while its own call is still in flight.
+  const challanResolved = metricsLoaded.challan === true;
 
   return (
     <div className="space-y-3.5">
@@ -243,11 +336,16 @@ function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loadi
         {Object.entries(complete9Metrics).map(([key, item]) => {
           const Icon = METRIC_ICONS[key] || FileText;
           const style = getStatus(item?.status);
+          const isLoaded = metricsLoaded[key] === true;
+
+          if (!isLoaded) {
+            return <MetricSkeletonCard key={key} />;
+          }
 
           return (
             <div
               key={key}
-              className={`rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition ${style.ring}`}
+              className={`rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition duration-300 ${style.ring}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-blue-600">
@@ -269,7 +367,7 @@ function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loadi
         })}
       </div>
 
-      {data.activeChallan && (
+      {data.activeChallan && challanResolved && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3.5 sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
@@ -300,6 +398,15 @@ function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loadi
         </div>
       )}
 
+      {data.activeChallan && !challanResolved && (
+        <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3">
+          <Gauge className="h-4 w-4 animate-spin text-slate-400" />
+          <p className="text-[11px] font-bold text-slate-500">
+            Checking challan status with e-Challan server…
+          </p>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={onReset}
@@ -315,7 +422,7 @@ function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loadi
 /* =========================================================================
    COMPLETE 5-POINT DL AUDIT RESULT
    ========================================================================= */
-function DriverResult({ data, onProtectedAction, onReset, loading }) {
+function DriverResult({ data, onProtectedAction, onReset, loading, metricsLoaded = {} }) {
   const complete5DlMetrics = {
     validity: { label: "1. Licence Validity Desk", headline: data.expiryDate || "Valid till 2035", detail: "Non-Transport Active", status: "clear" },
     category: { label: "2. Vehicle Class Auth", headline: data.licenceClass || "LMV / MCWG", detail: "Car & Motorbike Approved", status: "clear" },
@@ -323,6 +430,8 @@ function DriverResult({ data, onProtectedAction, onReset, loading }) {
     endorsement: { label: "4. RTO Endorsement", headline: "Clear Record", detail: "No Penalty Points", status: "clear" },
     biometrics: { label: "5. Digital Biometrics", headline: "Verified", detail: "Sarathi Bio-linked", status: "clear" },
   };
+
+  const allResolved = Object.keys(complete5DlMetrics).every((key) => metricsLoaded[key] === true);
 
   return (
     <div className="space-y-3.5">
@@ -374,10 +483,16 @@ function DriverResult({ data, onProtectedAction, onReset, loading }) {
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         {Object.entries(complete5DlMetrics).map(([key, item]) => {
           const Icon = DL_METRIC_ICONS[key] || CheckCircle2;
+          const isLoaded = metricsLoaded[key] === true;
+
+          if (!isLoaded) {
+            return <MetricSkeletonCard key={key} />;
+          }
+
           return (
             <div
               key={key}
-              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition duration-300"
             >
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
@@ -397,11 +512,15 @@ function DriverResult({ data, onProtectedAction, onReset, loading }) {
       <button
         type="button"
         onClick={() => onProtectedAction("dl_renew")}
-        disabled={loading}
+        disabled={loading || !allResolved}
         className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Starting secure flow…" : "Renew / Upgrade DL"}
-        {!loading && <ArrowUpRight className="h-4 w-4" />}
+        {loading
+          ? "Starting secure flow…"
+          : allResolved
+            ? "Renew / Upgrade DL"
+            : "Checking with Sarathi…"}
+        {!loading && allResolved && <ArrowUpRight className="h-4 w-4" />}
       </button>
 
       <button
@@ -450,6 +569,13 @@ export function Hero({
   // dl — so Cancel goes back to the audit result, not to a dead end.
   const [otpReturnStep, setOtpReturnStep] = useState("vehicle");
 
+  // Per-item loading state for the 9-point / 5-point checklist. In
+  // production each of these comes from a different government server
+  // (Vahan, e-Challan, Sarathi, PUCC registry, etc.), so they resolve
+  // independently and in parallel — not one after another. This state
+  // tracks which of those (simulated) calls have come back.
+  const [metricsLoaded, setMetricsLoaded] = useState({});
+
   const cleanInput = normalizeVehicleNumber(inputValue);
   const isValidToken = cleanInput.length >= 8;
   const inputKind = cleanInput.startsWith("DL") ? "DL" : "vehicle";
@@ -465,13 +591,44 @@ export function Hero({
 
   const activeIntentCopy = activeIntentType ? INTENT_COPY[activeIntentType] : null;
 
+  // Fires a fresh, independent (simulated) request per checklist item as
+  // soon as an audit result is shown. Each item gets its own random
+  // delay and flips to "loaded" on its own timer — genuinely parallel,
+  // not staggered-but-sequential — mirroring separate async calls out
+  // to separate government registries.
+  useEffect(() => {
+    if (step !== "vehicle" && step !== "dl") return;
+
+    const keys = step === "vehicle" ? Object.keys(METRIC_ICONS) : Object.keys(DL_METRIC_ICONS);
+    const initial = {};
+    keys.forEach((key) => {
+      initial[key] = false;
+    });
+    setMetricsLoaded(initial);
+
+    const timers = keys.map((key) =>
+      window.setTimeout(
+        () => {
+          setMetricsLoaded((current) => ({ ...current, [key]: true }));
+        },
+        350 + Math.random() * 1400,
+      ),
+    );
+
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [step, activeVehicleData, activeDriverData]);
+
   useEffect(() => {
     const isSheetOpen = step !== "input";
     document.body.style.overflow = isSheetOpen ? "hidden" : "";
+    // Lets any global stylesheet hide/dim the persistent bottom nav bar
+    // and the "AI Saathi" chat FAB while a sheet is open, so they can't
+    // float on top of the drawer's own buttons on short mobile screens.
+    document.body.classList.toggle("app-sheet-open", isSheetOpen);
 
     const handleEscape = (event) => {
       if (event.key !== "Escape" || !isSheetOpen) return;
-      if (step === "otp" || step === "action") return;
+      if (step === "otp" || step === "otp_success" || step === "action") return;
       if (step === "action_success") {
         finishAndGoToAccount();
         return;
@@ -483,8 +640,18 @@ export function Hero({
 
     return () => {
       document.body.style.overflow = "";
+      document.body.classList.remove("app-sheet-open");
       window.removeEventListener("keydown", handleEscape);
     };
+  }, [step]);
+
+  // Auto-advance the brief "Verified" checkmark screen into the actual
+  // action screen — this is a transient confirmation beat, not a
+  // dead-end the user needs a button to escape.
+  useEffect(() => {
+    if (step !== "otp_success") return;
+    const t = window.setTimeout(() => setStep("action"), 900);
+    return () => window.clearTimeout(t);
   }, [step]);
 
   async function handleCopy(text) {
@@ -556,6 +723,7 @@ export function Hero({
     setActiveDriverData(null);
     setSettledAmount(0);
     setActiveIntentType(null);
+    setMetricsLoaded({});
 
     if (isAuthenticated) {
       onGoToAccount?.();
@@ -575,6 +743,7 @@ export function Hero({
     setActiveDriverData(null);
     setSettledAmount(0);
     setActiveIntentType(null);
+    setMetricsLoaded({});
     onGoToAccount?.();
   }
 
@@ -652,10 +821,11 @@ export function Hero({
       }
 
       // Now on the secured session. We deliberately do NOT navigate away
-      // here — resume exactly where the user left off (this same drawer)
-      // and finish the action inline. activeIntentType was set back in
+      // here — resume exactly where the user left off (this same drawer).
+      // Show a brief "Verified" confirmation first, then land on the
+      // action screen. activeIntentType was set back in
       // handleProtectedAction, so we already know what to complete.
-      setStep("action");
+      setStep("otp_success");
     }, 450);
   }
 
@@ -729,9 +899,11 @@ export function Hero({
         ? `${activeDriverData?.dlNumber || inputValue} · DL status`
         : step === "otp"
           ? `${otpReturnStep === "dl" ? activeDriverData?.dlNumber : activeVehicleData?.vehicleNumber} · Verify to continue`
-          : step === "action"
-            ? activeIntentCopy?.sheetTitle || "Complete action"
-            : activeIntentCopy?.successTitle || "Payment complete";
+          : step === "otp_success"
+            ? "Verified"
+            : step === "action"
+              ? activeIntentCopy?.sheetTitle || "Complete action"
+              : activeIntentCopy?.successTitle || "Payment complete";
 
   const resultEyebrow =
     step === "vehicle"
@@ -742,9 +914,11 @@ export function Hero({
           ? otpReturnStep === "dl"
             ? "Driver audit"
             : "Vehicle audit"
-          : step === "action"
-            ? activeIntentCopy?.sheetEyebrow
-            : "Completed";
+          : step === "otp_success"
+            ? "Success"
+            : step === "action"
+              ? activeIntentCopy?.sheetEyebrow
+              : "Completed";
 
   return (
     <section
@@ -965,6 +1139,7 @@ export function Hero({
             onProtectedAction={handleProtectedAction}
             onReset={returnToSearch}
             loading={loading}
+            metricsLoaded={metricsLoaded}
           />
         </ResponsiveResultSheet>
       )}
@@ -981,6 +1156,7 @@ export function Hero({
             onProtectedAction={handleProtectedAction}
             onReset={returnToSearch}
             loading={loading}
+            metricsLoaded={metricsLoaded}
           />
         </ResponsiveResultSheet>
       )}
@@ -1037,23 +1213,30 @@ export function Hero({
               )}
             </div>
 
-            <div className="flex gap-2.5">
-              <button
-                type="button"
-                onClick={() => setStep(otpReturnStep)}
-                className="h-11 flex-1 rounded-xl border border-slate-200 bg-white text-xs font-black text-slate-700 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
+            <div>
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="h-11 flex-[2] rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700 disabled:opacity-50"
+                className="h-11 w-full rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 {loading ? "Verifying…" : "Verify & Continue"}
               </button>
             </div>
           </form>
+        </ResponsiveResultSheet>
+      )}
+
+      {/* Brief in-drawer "Verified" confirmation right after OTP success,
+          before landing on the actual payment/renewal screen — same
+          drawer, no separate popup. Auto-advances; not dismissible. */}
+      {step === "otp_success" && (
+        <ResponsiveResultSheet
+          eyebrow={resultEyebrow}
+          title={resultTitle}
+          onClose={() => {}}
+          dismissible={false}
+        >
+          <AnimatedSuccessCheck label="Taking you to the next step…" />
         </ResponsiveResultSheet>
       )}
 
