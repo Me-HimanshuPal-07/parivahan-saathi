@@ -1,587 +1,1218 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Activity,
   AlertTriangle,
-  ArrowLeftRight,
-  Ban,
+  ArrowLeft,
+  ArrowUpRight,
+  Calendar,
+  Check,
   CheckCircle2,
-  Clock,
+  Clock3,
+  Copy,
+  CreditCard,
   FileText,
   Gauge,
-  Landmark,
+  IndianRupee,
+  Leaf,
   Lock,
-  ReceiptText,
+  MapPin,
+  RefreshCw,
   ScanFace,
+  Search,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
-  Leaf,
-  IndianRupee,
+  Zap,
+  X,
+  UserCheck,
+  LogIn,
+  KeyRound,
+  ChevronRight,
+  Fuel,
+  Award,
 } from "lucide-react";
-import {
-  formatIndianRupee,
-  getVehicleAudit,
-  normalizeVehicleNumber,
-} from "../lib/mock-data";
+import { normalizeVehicleNumber, MOCK_SYSTEM_DB } from "../data/mockSystem";
 
-const SAMPLES = ["UP32EA1234", "DL01CD5678", "MH14EF9012", "KA05GH3456"];
+const SAMPLES = ["UP16BT7788", "DL1420240098765"];
 
-const ICONS = {
-  rc: <FileText className="h-5 w-5" />,
-  insurance: <ShieldCheck className="h-5 w-5" />,
-  pucc: <Leaf className="h-5 w-5" />,
-  fitness: <Gauge className="h-5 w-5" />,
-  challan: <IndianRupee className="h-5 w-5" />,
-  blacklist: <Ban className="h-5 w-5" />,
-  ownership: <ArrowLeftRight className="h-5 w-5" />,
-  hypothecation: <Landmark className="h-5 w-5" />,
-  roadtax: <ReceiptText className="h-5 w-5" />,
-};
-
+// Status styling mapping
 const STATUS_STYLES = {
   clear: {
-    chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    chip: "border-emerald-200 bg-emerald-50 text-emerald-700",
     dot: "bg-emerald-500",
-    ring: "border-emerald-200",
-    text: "All clear",
+    ring: "hover:border-emerald-300",
+    label: "All clear",
   },
   attention: {
-    chip: "bg-amber-50 text-amber-700 border-amber-200",
+    chip: "border-amber-200 bg-amber-50 text-amber-700",
     dot: "bg-amber-500",
-    ring: "border-amber-200",
-    text: "Action soon",
+    ring: "hover:border-amber-300",
+    label: "Action soon",
   },
   concern: {
-    chip: "bg-red-50 text-red-700 border-red-200",
-    dot: "bg-red-500",
-    ring: "border-red-200",
-    text: "Raised concern",
+    chip: "border-rose-200 bg-rose-50 text-rose-700",
+    dot: "bg-rose-500",
+    ring: "hover:border-rose-300",
+    label: "Needs action",
   },
 };
 
-// Basic Indian plate shape: 2 letters, 2 digits, 1-2 letters, 4 digits.
-const PLATE_PATTERN = /^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/;
+// Complete 9-Point Vehicle Icons
+const METRIC_ICONS = {
+  rc: FileText,
+  pucc: Leaf,
+  insurance: ShieldCheck,
+  challan: IndianRupee,
+  roadtax: MapPin,
+  fitness: Activity,
+  permit: ArrowUpRight,
+  chassis: Lock,
+  fuel: Fuel,
+};
 
-export function Hero() {
-  const [step, setStep] = useState("input");
-  const [vehicleNumber, setVehicleNumber] = useState("");
-  const [touched, setTouched] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [audit, setAudit] = useState(null);
+// Complete 5-Point DL Icons
+const DL_METRIC_ICONS = {
+  validity: Calendar,
+  category: Gauge,
+  badge: Award,
+  endorsement: CheckCircle2,
+  biometrics: ScanFace,
+};
 
-  const normalizedInput = normalizeVehicleNumber(vehicleNumber);
-  const isValidPlate = PLATE_PATTERN.test(normalizedInput);
+// What each protected action needs, shown consistently across the OTP
+// step, and the in-sheet action/success screens — all rendered inside
+// the SAME drawer the user is already looking at.
+const INTENT_COPY = {
+  challan_settlement: {
+    authMessage: (amount) => `Verify to pay ₹${amount} challan.`,
+    sheetEyebrow: "Checkout",
+    sheetTitle: "Review challan payment",
+    successTitle: "Challan settled successfully",
+    successDetail: "Your account is logged in and record cleared.",
+  },
+  dl_renew: {
+    authMessage: () => "Verify to renew Driving Licence.",
+    sheetEyebrow: "DL renewal",
+    sheetTitle: "Confirm renewal application",
+    successTitle: "DL renewal application submitted",
+    successDetail: "Your account is logged in and the renewal is now in progress.",
+  },
+};
 
-  function runAudit(value) {
-    const normalized = normalizeVehicleNumber(value ?? vehicleNumber);
-    setTouched(true);
-    if (!normalized || !PLATE_PATTERN.test(normalized)) return;
-    setVehicleNumber(normalized);
-    setLoading(true);
-    setTimeout(() => {
-      setAudit(getVehicleAudit(normalized));
-      setLoading(false);
-      setStep("audit");
-    }, 800);
-  }
+const getStatus = (status) =>
+  STATUS_STYLES[status] || STATUS_STYLES.clear;
 
-  function sendOtp() {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setStep("otp");
-    }, 600);
-  }
+/* =========================================================================
+   RESPONSIVE RESULT SHEET WRAPPER
+   ========================================================================= */
+function ResponsiveResultSheet({
+  title,
+  eyebrow,
+  onClose,
+  closeLabel = "Back to search",
+  children,
+  dismissible = true,
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+      onClick={(event) => {
+        if (dismissible && event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hero-result-title"
+        className="flex min-h-0 max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-[26px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] sm:max-h-[86dvh] sm:max-w-3xl sm:rounded-[28px]"
+      >
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-slate-300 sm:hidden" />
 
-  function verifyOtp(e) {
-    e.preventDefault();
-    if (otp.length !== 6) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setStep("payment");
-    }, 700);
-  }
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-4 py-3.5 sm:px-6 sm:py-4">
+          <div className="min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-600">
+              {eyebrow}
+            </p>
+            <h2
+              id="hero-result-title"
+              className="mt-0.5 truncate text-base font-black text-slate-950 sm:text-lg"
+            >
+              {title}
+            </h2>
+          </div>
 
-  function payNow() {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setStep("success");
-    }, 1000);
-  }
+          {dismissible && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={closeLabel}
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              <span className="hidden sm:inline">{closeLabel}</span>
+              <X className="h-4 w-4 sm:hidden" />
+            </button>
+          )}
+        </div>
 
-  function reset() {
-    setStep("input");
-    setVehicleNumber("");
-    setOtp("");
-    setAudit(null);
-  }
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-6">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  const overall = audit ? STATUS_STYLES[audit.overall] : STATUS_STYLES.clear;
+function StatusChip({ status }) {
+  const style = getStatus(status);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black ${style.chip}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+      {style.label}
+    </span>
+  );
+}
+
+/* =========================================================================
+   COMPLETE 9-POINT VEHICLE AUDIT RESULT
+   ========================================================================= */
+function VehicleResult({ data, copied, onCopy, onProtectedAction, onReset, loading }) {
+  const challanAmount =
+    data?.activeChallan?.amount != null ? Number(data.activeChallan.amount) : 0;
+
+  // Complete 9-point default metrics fallback
+  const complete9Metrics = {
+    rc: { label: "1. RC Validation Status", headline: "Active", detail: "Registered with Home RTO", status: "clear" },
+    pucc: { label: "2. PUC Emission Certificate", headline: "Valid", detail: "Expires in 184 Days", status: "clear" },
+    insurance: { label: "3. Third-Party Insurance", headline: "Live", detail: "Policy Active till Dec 2026", status: "clear" },
+    challan: { label: "4. Pending Traffic Challans", headline: challanAmount > 0 ? `₹${challanAmount}` : "0 Clear", detail: challanAmount > 0 ? "Pending payment" : "No pending violations", status: challanAmount > 0 ? "concern" : "clear" },
+    roadtax: { label: "5. Road Tax Compliance", headline: "Paid", detail: "LTT Paid (One Time)", status: "clear" },
+    fitness: { label: "6. Fitness Certificate", headline: "Valid", detail: "Valid up to 2030", status: "clear" },
+    permit: { label: "7. Commercial Permit Status", headline: "N/A", detail: "Private Passenger Vehicle", status: "clear" },
+    chassis: { label: "8. Chassis & Engine Match", headline: "Verified", detail: "Digital Hash Matched", status: "clear" },
+    fuel: { label: "9. Bio-Fuel / Fuel Tag", headline: "BS6 Petrol", detail: "Compliant with E20 Norms", status: "clear" },
+    ...(data.metrics || {}),
+  };
 
   return (
-    <section className="relative isolate col-span-full overflow-hidden rounded-[32px]">
-      {/* Scoped, reduced-motion-aware animation for the background lane lines
-          and the scan sweep on the plate input. */}
-      <style>{`
-        @keyframes ps-lane-scroll { to { stroke-dashoffset: -64; } }
-        .ps-lane-lines { animation: ps-lane-scroll 4.5s linear infinite; }
-        @keyframes ps-scan-sweep {
-          0% { transform: translateX(-120%); }
-          100% { transform: translateX(320%); }
-        }
-        .ps-scan-sweep { animation: ps-scan-sweep 1.15s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) {
-          .ps-lane-lines, .ps-scan-sweep { animation: none !important; }
-        }
-      `}</style>
+    <div className="space-y-3.5">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-100 font-mono text-xs font-black text-blue-700">
+            RC
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate font-mono text-base font-black text-slate-950">
+                {data.vehicleNumber}
+              </p>
+              <button
+                type="button"
+                onClick={() => onCopy(data.vehicleNumber)}
+                aria-label={copied ? "Token copied" : "Copy token"}
+                className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-800"
+              >
+                {copied ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+            <p className="truncate text-[11px] text-slate-500">
+              Owner:{" "}
+              <span className="font-mono font-bold text-slate-700">
+                {data.ownerMasked || "C****** S****"}
+              </span>
+            </p>
+          </div>
+        </div>
 
-      {/* Background: custom vector "road + scan grid" — no stock photography,
-          lighter to load and consistent with the brand on every connection speed. */}
-      <div
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,#1c2f6b_0%,#0b1330_55%,#05070f_100%)]"
-        aria-hidden="true"
-      >
-        <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-[#3E63D6]/30 blur-3xl" />
-        <div className="absolute bottom-0 left-[12%] h-64 w-64 rounded-full bg-[#F2A93B]/10 blur-3xl" />
-        <svg
-          className="absolute inset-0 h-full w-full opacity-30"
-          preserveAspectRatio="none"
-          viewBox="0 0 1200 600"
-        >
-          <defs>
-            <linearGradient id="psLaneFade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-              <stop offset="55%" stopColor="#fff" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <g
-            className="ps-lane-lines"
-            stroke="url(#psLaneFade)"
-            strokeWidth="2"
-            strokeDasharray="14 18"
-          >
-            <path d="M -120 640 L 260 -40" />
-            <path d="M 140 640 L 460 -40" />
-            <path d="M 420 640 L 660 -40" />
-            <path d="M 720 640 L 860 -40" />
-            <path d="M 1000 640 L 1040 -40" />
-            <path d="M 1320 640 L 1180 -40" />
-          </g>
-        </svg>
-        <div className="absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:24px_24px]" />
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#05070f]/10 to-[#05070f]/85" />
+        <StatusChip status={data.overallStatus} />
       </div>
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:py-20">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/80 backdrop-blur">
-          <Sparkles className="h-3.5 w-3.5 text-[#F2A93B]" />
-          एक number · पूरी gaadi की report
-        </span>
-
-        <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
-          Gaadi ka पूरा <span className="text-[#8FADFF]">Health Audit</span>,
-          <br className="hidden sm:block" />
-          एक ही जगह पर।
-        </h1>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
-          Challan, Insurance, PUCC, Fitness, Ownership aur Hypothecation —
-          alag-alag portal nahi. Vehicle number डालें और 3 second में साफ़
-          traffic-light status पाएँ। Login ki zaroorat nahi.
+      <div className="flex items-center justify-between px-1">
+        <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+          Complete 9-Point Compliance Checklist
         </p>
+        <span className="text-[10px] font-bold text-emerald-600">Verified Vahan DB</span>
+      </div>
 
-        {/* Scanner card */}
-        <div className="relative mt-10 overflow-hidden rounded-[28px] border border-white/10 bg-white shadow-[0_30px_70px_-18px_rgba(5,10,26,0.6)]">
-          <div className="flex flex-col gap-3 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#2A52BE]">
-                All-in-one health audit
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        {Object.entries(complete9Metrics).map(([key, item]) => {
+          const Icon = METRIC_ICONS[key] || FileText;
+          const style = getStatus(item?.status);
+
+          return (
+            <div
+              key={key}
+              className={`rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition ${style.ring}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-blue-600">
+                  <Icon className="h-3.5 w-3.5" />
+                </div>
+                <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+              </div>
+              <p className="mt-2 text-xs font-black text-slate-900">
+                {item?.label || key}
               </p>
-              <h2 className="mt-1 truncate text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-                {step === "input"
-                  ? "Apni gaadi ka status check करें"
-                  : `Report · ${audit?.vehicleNumber ?? ""}`}
-              </h2>
+              <p className="mt-0.5 text-[10px] font-bold text-slate-600">
+                {item?.headline || style.label}
+              </p>
+              <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
+                {item?.detail}
+              </p>
             </div>
-            {step !== "input" && audit ? (
-              <span
-                className={
-                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold " +
-                  overall.chip
-                }
-              >
-                <span
-                  className={"h-2 w-2 rounded-full " + overall.dot}
-                  aria-hidden="true"
-                />
-                {overall.text}
-              </span>
-            ) : (
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 text-[11px] font-bold text-slate-500">
-                <Lock className="h-3.5 w-3.5" />
-                No login · No captcha
-              </span>
-            )}
+          );
+        })}
+      </div>
+
+      {data.activeChallan && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3.5 sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <ShieldAlert className="h-5 w-5 shrink-0 text-rose-600" />
+              <div className="min-w-0">
+                <p className="text-xs font-black text-rose-900">
+                  Pending challan detected
+                </p>
+                <p className="truncate text-[11px] text-rose-800">
+                  {data.activeChallan.reasonEn}
+                </p>
+              </div>
+            </div>
+            <p className="shrink-0 font-mono text-lg font-black text-slate-950">
+              ₹{challanAmount.toLocaleString("en-IN")}
+            </p>
           </div>
 
-          <div className="p-6 sm:p-7">
-            {step === "input" && (
-              <div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    runAudit();
-                  }}
-                  className="space-y-3"
-                  noValidate
-                >
-                  <label
-                    htmlFor="vehicle"
-                    className="block text-sm font-bold text-slate-900"
-                  >
-                    Vehicle Registration Number
-                  </label>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <div className="relative flex-1">
-                      <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-slate-900 bg-white shadow-[0_3px_0_0_#0f172a] transition-colors focus-within:border-[#2A52BE]">
-                        <div className="flex w-11 shrink-0 flex-col items-center justify-center gap-1 bg-[#2A52BE] text-white">
-                          <span className="text-[8px] font-black tracking-[0.18em]">
-                            IND
-                          </span>
-                          <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
-                        </div>
-                        <input
-                          id="vehicle"
-                          value={vehicleNumber}
-                          onChange={(e) => {
-                            setVehicleNumber(e.target.value.toUpperCase());
-                            setTouched(false);
-                          }}
-                          placeholder="UP32EA1234"
-                          autoCapitalize="characters"
-                          autoComplete="off"
-                          autoCorrect="off"
-                          spellCheck={false}
-                          aria-label="Vehicle registration number"
-                          className="h-16 min-w-0 flex-1 bg-transparent px-4 font-mono text-xl font-extrabold uppercase tracking-[0.12em] text-slate-900 outline-none placeholder:font-semibold placeholder:text-slate-300 sm:text-2xl"
-                        />
-                        {loading && (
-                          <div
-                            className="pointer-events-none absolute inset-y-0 left-11 right-0 overflow-hidden"
-                            aria-hidden="true"
-                          >
-                            <div className="ps-scan-sweep h-full w-1/3 bg-linear-to-r from-transparent via-[#2A52BE]/15 to-transparent" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="h-16 shrink-0 rounded-2xl bg-[#2A52BE] px-7 text-base font-bold text-white shadow-[0_12px_26px_-10px_rgba(42,82,190,0.75)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
-                    >
-                      {loading ? "Scanning..." : "Full Check करें"}
-                    </button>
-                  </div>
-                  {touched && !isValidPlate ? (
-                    <p className="text-sm font-medium text-red-600">
-                      Sahi format डालें — जैसे{" "}
-                      <span className="font-bold">UP32EA1234</span> (2 अक्षर, 2
-                      नंबर, 1-2 अक्षर, 4 नंबर)।
-                    </p>
-                  ) : null}
-                </form>
+          <button
+            type="button"
+            onClick={() => onProtectedAction("challan_settlement")}
+            disabled={loading}
+            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <CreditCard className="h-4 w-4" />
+            {loading ? "Starting secure flow…" : "Settle challan now"}
+          </button>
+        </div>
+      )}
 
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                    Try:
-                  </span>
-                  {SAMPLES.map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => runAudit(num)}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs font-bold tracking-wider text-slate-600 transition-colors hover:border-[#2A52BE]/40 hover:bg-[#2A52BE]/5 hover:text-[#2A52BE]"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
+      <button
+        type="button"
+        onClick={onReset}
+        className="inline-flex items-center gap-2 px-1 text-xs font-bold text-slate-500 hover:text-slate-900"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Search another number
+      </button>
+    </div>
+  );
+}
 
-                <div className="mt-6 grid gap-2 sm:grid-cols-4">
-                  {[
-                    { icon: <FileText className="h-4 w-4" />, label: "RC" },
-                    {
-                      icon: <ShieldCheck className="h-4 w-4" />,
-                      label: "Insurance",
-                    },
-                    { icon: <Leaf className="h-4 w-4" />, label: "PUCC" },
-                    {
-                      icon: <IndianRupee className="h-4 w-4" />,
-                      label: "E-Challan",
-                    },
-                  ].map((chip) => (
-                    <div
-                      key={chip.label}
-                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-500 transition-colors hover:border-[#2A52BE]/25 hover:bg-[#2A52BE]/5"
-                    >
-                      <span className="shrink-0 text-[#2A52BE]">
-                        {chip.icon}
-                      </span>
-                      <span className="min-w-0 truncate">{chip.label}</span>
-                    </div>
-                  ))}
-                </div>
+/* =========================================================================
+   COMPLETE 5-POINT DL AUDIT RESULT
+   ========================================================================= */
+function DriverResult({ data, onProtectedAction, onReset, loading }) {
+  const complete5DlMetrics = {
+    validity: { label: "1. Licence Validity Desk", headline: data.expiryDate || "Valid till 2035", detail: "Non-Transport Active", status: "clear" },
+    category: { label: "2. Vehicle Class Auth", headline: data.licenceClass || "LMV / MCWG", detail: "Car & Motorbike Approved", status: "clear" },
+    badge: { label: "3. Commercial Badge", headline: "Not Issued", detail: "Private Driver Record", status: "clear" },
+    endorsement: { label: "4. RTO Endorsement", headline: "Clear Record", detail: "No Penalty Points", status: "clear" },
+    biometrics: { label: "5. Digital Biometrics", headline: "Verified", detail: "Sarathi Bio-linked", status: "clear" },
+  };
 
-                <p className="mt-5 flex items-center gap-2 text-sm font-medium text-slate-500">
-                  <ScanFace className="h-4 w-4 shrink-0 text-[#2A52BE]" />
-                  9 portal, 9 form — अब बस एक input में पूरी जानकारी।
-                </p>
-              </div>
-            )}
-
-            {step === "audit" && audit && (
-              <div className="space-y-4">
-                {audit.blacklisted && (
-                  <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
-                    <Ban className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900">
-                        Yeh vehicle blacklisted hai
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
-                        Koi bhi naya service tab tak access nahi hoga jab tak
-                        dispute resolve na ho. {audit.blacklistReason}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                      Owner (masked for privacy)
-                    </p>
-                    <p className="truncate text-base font-bold text-slate-900">
-                      {audit.ownerMasked}
-                    </p>
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500">
-                    <Gauge className="h-3 w-3" />
-                    Audit in 3s
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {audit.items.map((item) => {
-                    const s = STATUS_STYLES[item.status];
-                    return (
-                      <div
-                        key={item.id}
-                        className={
-                          "rounded-2xl border bg-white p-4 shadow-[0_1px_0_0_rgba(15,23,42,0.03)] " +
-                          s.ring
-                        }
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#2A52BE]/10 text-[#2A52BE]">
-                            {ICONS[item.id]}
-                          </span>
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-bold text-slate-900">
-                              {item.label}
-                            </span>
-                            <span className="block truncate text-[11px] text-slate-500">
-                              {item.labelHi}
-                            </span>
-                          </span>
-                        </div>
-                        <span
-                          className={
-                            "mt-3 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold " +
-                            s.chip
-                          }
-                        >
-                          {item.status === "clear" ? (
-                            <CheckCircle2 className="h-3 w-3" />
-                          ) : item.status === "attention" ? (
-                            <Clock className="h-3 w-3" />
-                          ) : (
-                            <AlertTriangle className="h-3 w-3" />
-                          )}
-                          {item.headline}
-                        </span>
-                        <p className="mt-2 text-xs text-slate-500">
-                          {item.detail}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {audit.totalDue > 0 ? (
-                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <ul className="space-y-2">
-                      {audit.challans.map((c) => (
-                        <li
-                          key={c.id}
-                          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium text-slate-900">
-                              {c.violationType}
-                            </span>
-                            <span className="block truncate text-xs text-slate-500">
-                              {c.location}
-                            </span>
-                          </span>
-                          <span className="shrink-0 text-sm font-bold text-slate-900">
-                            {formatIndianRupee(c.fineAmount)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                      <span className="min-w-0 text-sm font-bold text-slate-900">
-                        Total due
-                      </span>
-                      <span className="shrink-0 text-xl font-extrabold text-slate-900">
-                        {formatIndianRupee(audit.totalDue)}
-                      </span>
-                    </div>
-                    {audit.blacklisted ? (
-                      <p className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-slate-900">
-                        <Lock className="h-4 w-4 shrink-0 text-red-600" />
-                        Payment blocked — pehle blacklist dispute resolve
-                        karein.
-                      </p>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={sendOtp}
-                        disabled={loading}
-                        className="w-full rounded-2xl bg-[#2A52BE] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
-                      >
-                        {loading ? "Sending OTP..." : "Pay Now · OTP se secure"}
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-slate-900">
-                    कोई pending challan नहीं — aapki gaadi compliant hai.
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-50"
-                >
-                  Dusri gaadi check करें
-                </button>
-              </div>
-            )}
-
-            {step === "otp" && (
-              <form onSubmit={verifyOtp} className="space-y-4">
-                <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  <Lock className="h-4 w-4 shrink-0 text-[#2A52BE]" />
-                  Payment ek protected step hai — mock OTP registered mobile
-                  par bheja gaya.
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    value={otp}
-                    onChange={(e) =>
-                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                    }
-                    placeholder="Enter 6-digit OTP"
-                    inputMode="numeric"
-                    aria-label="OTP"
-                    className="h-16 flex-1 rounded-2xl border-2 border-slate-900 bg-white px-5 text-center font-mono text-lg font-extrabold tracking-[0.5em] text-slate-900 outline-none transition-colors placeholder:tracking-normal placeholder:font-semibold placeholder:text-slate-300 focus:border-[#2A52BE]"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="h-16 shrink-0 rounded-2xl bg-[#2A52BE] px-7 text-sm font-bold text-white shadow-[0_10px_22px_-8px_rgba(42,82,190,0.7)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
-                  >
-                    {loading ? "Verifying..." : "Verify OTP"}
-                  </button>
-                </div>
-                <p className="text-xs font-semibold text-slate-500">
-                  Demo OTP: 123456
-                </p>
-              </form>
-            )}
-
-            {step === "payment" && audit && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                      Total payable
-                    </p>
-                    <p className="text-2xl font-extrabold text-slate-900">
-                      {formatIndianRupee(audit.totalDue)}
-                    </p>
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-500">
-                    <ShieldCheck className="h-3 w-3" />
-                    Verified session
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={payNow}
-                  disabled={loading}
-                  className="w-full rounded-2xl bg-[#2A52BE] px-6 py-4 text-base font-bold text-white shadow-[0_12px_26px_-10px_rgba(42,82,190,0.75)] transition-colors hover:bg-[#2245a3] disabled:opacity-70"
-                >
-                  {loading
-                    ? "Processing..."
-                    : `Pay ${formatIndianRupee(audit.totalDue)}`}
-                </button>
-              </div>
-            )}
-
-            {step === "success" && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-500 text-white">
-                  <CheckCircle2 className="h-6 w-6" />
-                </span>
-                <p className="mt-3 text-lg font-bold text-slate-900">
-                  Payment successful
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Challan clear ho gaya — aapka health audit ab green hai.
-                </p>
-                <p className="mt-2 text-xs font-semibold text-slate-500">
-                  Receipt ID: PS-2026-847291
-                </p>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-50"
-                >
-                  Check another vehicle
-                </button>
-              </div>
-            )}
+  return (
+    <div className="space-y-3.5">
+      <div className="rounded-2xl border border-purple-200 bg-purple-50/70 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-purple-200 bg-white text-purple-700">
+            <ScanFace className="h-5 w-5" />
           </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-purple-700">
+              Driving licence audit
+            </p>
+            <p className="mt-1 truncate font-mono text-sm font-black text-slate-950">
+              {data.dlNumber}
+            </p>
+            <p className="mt-1 text-[11px] font-bold text-emerald-700">
+              {data.enforcementStatus || "Verified active"}
+            </p>
+          </div>
+        </div>
 
-          {/* Trust footer */}
-          <div className="grid gap-1 rounded-b-[28px] border-t border-slate-100 bg-slate-50 px-6 py-4 text-xs text-slate-500 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-7">
-            <span className="inline-flex min-w-0 items-center gap-1.5">
-              <Lock className="h-3.5 w-3.5 shrink-0" />
-              Owner data masked · Rate-limit &amp; bot protection simulated ·
-              Mock data only
-            </span>
-            <span className="shrink-0 sm:text-right">
-              Parivahan Saathi · Citizen-first experience
-            </span>
+        <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-purple-100 pt-3">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+              Holder
+            </p>
+            <p className="mt-0.5 text-xs font-extrabold text-slate-900">
+              {data.ownerName || "Masked Holder"}
+            </p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+              Class
+            </p>
+            <p className="mt-0.5 text-xs font-extrabold text-slate-900">
+              {data.licenceClass || "LMV / MCWG"}
+            </p>
           </div>
         </div>
       </div>
+
+      <div className="flex items-center justify-between px-1">
+        <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+          Complete 5-Point DL Checklist
+        </p>
+        <span className="text-[10px] font-bold text-purple-600">Sarathi Registry</span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        {Object.entries(complete5DlMetrics).map(([key, item]) => {
+          const Icon = DL_METRIC_ICONS[key] || CheckCircle2;
+          return (
+            <div
+              key={key}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+                  <Icon className="h-3.5 w-3.5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900">{item.label}</p>
+                  <p className="text-[10px] font-bold text-emerald-700">{item.headline}</p>
+                </div>
+              </div>
+              <p className="mt-1 text-[10px] text-slate-500">{item.detail}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onProtectedAction("dl_renew")}
+        disabled={loading}
+        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "Starting secure flow…" : "Renew / Upgrade DL"}
+        {!loading && <ArrowUpRight className="h-4 w-4" />}
+      </button>
+
+      <button
+        type="button"
+        onClick={onReset}
+        className="inline-flex items-center gap-2 px-1 text-xs font-bold text-slate-500 hover:text-slate-900"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Search another number
+      </button>
+    </div>
+  );
+}
+
+/* =========================================================================
+   MAIN HERO COMPONENT
+   ========================================================================= */
+export function Hero({
+  setCurrentNode,
+  changeView,
+  onStartService,
+  onAuthenticated,
+  onActionCompleted,
+  onGoToAccount,
+  language,
+  isAuthenticated = false, // Current auth state from parent app
+}) {
+  const [step, setStep] = useState("input");
+  const [inputValue, setInputValue] = useState("");
+  const [touched, setTouched] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [activeVehicleData, setActiveVehicleData] = useState(null);
+  const [activeDriverData, setActiveDriverData] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [settledAmount, setSettledAmount] = useState(0);
+
+  // Tracks which protected action (challan payment / DL renewal) is in
+  // flight, so once OTP is verified — right here, inside the same
+  // drawer the user already opened — we know exactly which step to
+  // resume next. The user never leaves this sheet.
+  const [activeIntentType, setActiveIntentType] = useState(null);
+
+  // Which sheet the OTP step should "return to" on cancel — vehicle or
+  // dl — so Cancel goes back to the audit result, not to a dead end.
+  const [otpReturnStep, setOtpReturnStep] = useState("vehicle");
+
+  const cleanInput = normalizeVehicleNumber(inputValue);
+  const isValidToken = cleanInput.length >= 8;
+  const inputKind = cleanInput.startsWith("DL") ? "DL" : "vehicle";
+  const isHindi = language === "hi";
+
+  const challanAmount =
+    activeVehicleData?.activeChallan?.amount != null
+      ? Number(activeVehicleData.activeChallan.amount)
+      : 0;
+
+  const activeResult =
+    step === "vehicle" ? activeVehicleData : step === "dl" ? activeDriverData : null;
+
+  const activeIntentCopy = activeIntentType ? INTENT_COPY[activeIntentType] : null;
+
+  useEffect(() => {
+    const isSheetOpen = step !== "input";
+    document.body.style.overflow = isSheetOpen ? "hidden" : "";
+
+    const handleEscape = (event) => {
+      if (event.key !== "Escape" || !isSheetOpen) return;
+      if (step === "otp" || step === "action") return;
+      if (step === "action_success") {
+        finishAndGoToAccount();
+        return;
+      }
+      returnToSearch();
+    };
+
+    if (isSheetOpen) window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [step]);
+
+  async function handleCopy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  function runGlobalAudit(overrideValue) {
+    const targetToken = normalizeVehicleNumber(overrideValue ?? inputValue);
+
+    setTouched(true);
+    if (targetToken.length < 8) return;
+
+    setInputValue(targetToken);
+    setLoading(true);
+
+    window.setTimeout(() => {
+      const driverMatch = MOCK_SYSTEM_DB?.sarathiRegistry?.[targetToken];
+      const vehicleMatch = MOCK_SYSTEM_DB?.vahanRegistry?.[targetToken];
+      const isDL = targetToken.startsWith("DL");
+
+      setLoading(false);
+
+      if (isDL) {
+        setActiveVehicleData(null);
+        setActiveDriverData(
+          driverMatch || {
+            dlNumber: targetToken,
+            licenceClass: "LMV / MCWG",
+            expiryDate: "Verification pending",
+            enforcementStatus: "Demo credential",
+            ownerName: "Masked Holder",
+          },
+        );
+        setStep("dl");
+        return;
+      }
+
+      setActiveDriverData(null);
+      setActiveVehicleData(
+        vehicleMatch || {
+          vehicleNumber: targetToken,
+          ownerMasked: "C****** S****",
+          overallStatus: "clear",
+          isCleanPlaceholder: true,
+          metrics: {},
+        },
+      );
+      setStep("vehicle");
+    }, 450);
+  }
+
+  // Closes out Hero's own local guest-search state. If the user is
+  // already authenticated (e.g. they just verified OTP mid-action and
+  // then dismissed the sheet before finishing), we don't want to strand
+  // them back on the raw guest homepage behind this drawer — hand off
+  // to the account shell instead, same as finishAndGoToAccount does.
+  function returnToSearch() {
+    setLoading(false);
+    setStep("input");
+    setOtp("");
+    setOtpError("");
+    setActiveVehicleData(null);
+    setActiveDriverData(null);
+    setSettledAmount(0);
+    setActiveIntentType(null);
+
+    if (isAuthenticated) {
+      onGoToAccount?.();
+    }
+  }
+
+  // Called from the success screen's primary action / close. Clears out
+  // Hero's own guest-search state (same as returnToSearch) and then hands
+  // control up to the app shell to switch into the Account Dashboard —
+  // this is the one moment Hero is allowed to navigate away.
+  function finishAndGoToAccount() {
+    setLoading(false);
+    setStep("input");
+    setOtp("");
+    setOtpError("");
+    setActiveVehicleData(null);
+    setActiveDriverData(null);
+    setSettledAmount(0);
+    setActiveIntentType(null);
+    onGoToAccount?.();
+  }
+
+  /* -------------------------------------------------------------------------
+     ACTION TRIGGER — INLINE, INSIDE THE SAME DRAWER
+     Every protected action (challan payment, DL renewal) is handled the
+     same way: remember which intent was requested, then either jump
+     straight to the in-sheet "action" step (already authenticated) or
+     move straight to the in-sheet "otp" step. No separate banner, no
+     separate popup — verification is just the next screen inside the
+     same audit drawer the user already has open, and completing it
+     also logs them into their account.
+     ------------------------------------------------------------------------- */
+  function handleProtectedAction(intentType) {
+    setActiveIntentType(intentType);
+    setOtpReturnStep(step); // remember whether we came from "vehicle" or "dl"
+
+    // If user is already authenticated, go straight to the in-sheet action.
+    if (isAuthenticated) {
+      setStep("action");
+      return;
+    }
+
+    // Move straight to the in-drawer OTP step — same sheet, next screen.
+    setOtp("");
+    setOtpError("");
+    setStep("otp");
+  }
+
+  function verifyOtp(event) {
+    event.preventDefault();
+
+    if (otp !== "123456") {
+      setOtpError("Incorrect code. Use demo OTP 123456.");
+      return;
+    }
+
+    setOtpError("");
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+
+      if (onAuthenticated) {
+        // Tell the app which record this session belongs to and which
+        // action is still waiting to be finished — AccountDashboard's
+        // home panel uses `pendingAction` to show a "continue where you
+        // left off" resume card once the user gets there.
+        const pendingAction =
+          activeIntentType === "challan_settlement"
+            ? {
+                type: "challan_settlement",
+                vehicleNumber: activeVehicleData?.vehicleNumber,
+                amount: challanAmount,
+              }
+            : activeIntentType === "dl_renew"
+              ? {
+                  type: "dl_renew",
+                  dlNumber: activeDriverData?.dlNumber,
+                }
+              : null;
+
+        onAuthenticated({
+          profile: {
+            // Real name resolves via AccountDashboard's own fallback
+            // chain (ledger lookup by userId, then a generic default) —
+            // don't hardcode a display name here, or it will always win
+            // over the actual citizen record.
+            verificationStatus: "Verified",
+          },
+          authMethod: "otp",
+          isNewUser: false,
+          userId: activeVehicleData?.ownerUserId || activeDriverData?.ownerUserId || undefined,
+          pendingAction,
+        });
+      }
+
+      // Now on the secured session. We deliberately do NOT navigate away
+      // here — resume exactly where the user left off (this same drawer)
+      // and finish the action inline. activeIntentType was set back in
+      // handleProtectedAction, so we already know what to complete.
+      setStep("action");
+    }, 450);
+  }
+
+  function completeChallanPayment() {
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+      setSettledAmount(challanAmount);
+      const paidVehicleNumber = activeVehicleData?.vehicleNumber;
+      setActiveVehicleData((current) =>
+        current
+          ? { ...current, overallStatus: "clear", activeChallan: null }
+          : current,
+      );
+      // Tell the app shell right now — not when the user later taps
+      // "Back to main screen" — so the account shell (and any other
+      // screen reading shared session/ledger state) reflects this the
+      // instant it actually happens, not a stale "still pending" state.
+      onActionCompleted?.({
+        type: "challan_settlement",
+        vehicleNumber: paidVehicleNumber,
+      });
+      setStep("action_success");
+    }, 750);
+  }
+
+  function completeDlRenewal() {
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+      const renewedDlNumber = activeDriverData?.dlNumber;
+      setActiveDriverData((current) =>
+        current
+          ? { ...current, enforcementStatus: "Renewal application submitted" }
+          : current,
+      );
+      onActionCompleted?.({
+        type: "dl_renew",
+        dlNumber: renewedDlNumber,
+      });
+      setStep("action_success");
+    }, 750);
+  }
+
+  function goToLearnHub(node) {
+    if (setCurrentNode && changeView) {
+      setCurrentNode(node);
+      changeView("learn_hub");
+      return;
+    }
+    onStartService?.(node);
+  }
+
+  // Once the user is authenticated, dismissing the mid-action sheets
+  // (backdrop tap / X / Cancel) should never dump them back on the raw
+  // guest homepage — send them to the account shell instead, same as a
+  // completed action would. While still a guest, dismissing just steps
+  // back to the audit result sheet as before.
+  function closeActionSheet(fallbackStep) {
+    if (isAuthenticated) {
+      finishAndGoToAccount();
+      return;
+    }
+    setStep(fallbackStep);
+  }
+
+  const resultTitle =
+    step === "vehicle"
+      ? `${activeVehicleData?.vehicleNumber || inputValue} · Vehicle status`
+      : step === "dl"
+        ? `${activeDriverData?.dlNumber || inputValue} · DL status`
+        : step === "otp"
+          ? `${otpReturnStep === "dl" ? activeDriverData?.dlNumber : activeVehicleData?.vehicleNumber} · Verify to continue`
+          : step === "action"
+            ? activeIntentCopy?.sheetTitle || "Complete action"
+            : activeIntentCopy?.successTitle || "Payment complete";
+
+  const resultEyebrow =
+    step === "vehicle"
+      ? "Vehicle audit"
+      : step === "dl"
+        ? "Driver audit"
+        : step === "otp"
+          ? otpReturnStep === "dl"
+            ? "Driver audit"
+            : "Vehicle audit"
+          : step === "action"
+            ? activeIntentCopy?.sheetEyebrow
+            : "Completed";
+
+  return (
+    <section
+      id="hero-lookup"
+      className="relative isolate col-span-full overflow-hidden text-slate-900"
+      data-step={step}
+    >
+      <div
+        className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-blue-200/30 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -bottom-36 -left-24 h-64 w-64 rounded-full bg-amber-100/40 blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto w-full max-w-6xl px-3.5 py-4 sm:px-7 sm:py-8 lg:px-9">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white/85 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-blue-700 shadow-sm backdrop-blur">
+            <Sparkles className="h-3 w-3 text-amber-500" />
+            {isHindi ? "एक नंबर · साफ़ जवाब" : "One number · clear answer"}
+          </span>
+          <span className="hidden text-[10px] font-bold text-slate-400 sm:inline">
+            No sign-in required for audit
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+          <div className="max-w-2xl">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+              Parivahan Saathi
+            </p>
+            <h1 className="text-[1.7rem] font-black leading-[1.06] tracking-[-0.045em] text-slate-950 sm:text-4xl lg:text-[3rem]">
+              Check your{" "}
+              <span className="text-blue-600">vehicle or DL</span> in seconds
+            </h1>
+            <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-600 sm:text-sm">
+              Complete 9-point Vehicle audit & 5-point DL verification in one instant search.
+            </p>
+          </div>
+
+          <div className="hidden max-w-sm grid-cols-2 gap-2 sm:grid">
+            <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm backdrop-blur">
+              <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                <Lock className="h-3 w-3 text-blue-600" />
+                Private Audit
+              </p>
+              <p className="mt-1 text-[11px] font-bold text-slate-700">
+                Identifiers Masked
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm backdrop-blur">
+              <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                <Zap className="h-3 w-3 text-amber-500" />
+                Instant Flow
+              </p>
+              <p className="mt-1 text-[11px] font-bold text-slate-700">
+                Verify Inline On Action
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mt-4 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:mt-6 sm:rounded-3xl">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/75 px-3.5 py-3 sm:px-5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-100 text-blue-600">
+                <Gauge className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Quick audit
+                </p>
+                <h2 className="text-sm font-black text-slate-900">
+                  Find RC or DL record
+                </h2>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[9px] font-bold text-slate-500">
+              <ShieldCheck className="h-3 w-3 text-emerald-600" />
+              Private lookup
+            </span>
+          </div>
+
+          <div className="p-3.5 sm:p-6 lg:p-7">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                runGlobalAudit();
+              }}
+              className="space-y-2.5"
+            >
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <label
+                    htmlFor="tokenInput"
+                    className="block text-xs font-black text-slate-900 sm:text-sm"
+                  >
+                    Vehicle number or DL number
+                  </label>
+                  <p id="tokenHelp" className="mt-0.5 text-[10px] text-slate-500">
+                    {inputKind === "DL"
+                      ? "DL detected · spaces and hyphens are okay"
+                      : "RC detected · spaces and hyphens are okay"}
+                  </p>
+                </div>
+                <span className="hidden text-[9px] font-black uppercase tracking-wider text-slate-400 sm:inline">
+                  National Registry
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <div className="relative flex-1">
+                  <div className="flex items-stretch overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-50 transition focus-within:border-blue-600 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10 sm:rounded-2xl">
+                    <div className="flex w-10 shrink-0 flex-col items-center justify-center border-r border-blue-500 bg-blue-600 text-[8px] font-black tracking-widest text-white sm:w-[52px] sm:text-[9px]">
+                      <span>IND</span>
+                      <span className="mt-0.5 text-[10px] sm:text-xs">🇮🇳</span>
+                    </div>
+                    <input
+                      id="tokenInput"
+                      value={inputValue}
+                      onChange={(event) => {
+                        setInputValue(event.target.value.toUpperCase());
+                        setTouched(false);
+                      }}
+                      placeholder="e.g. UP16BT7788 / DL1420240098765"
+                      autoCapitalize="characters"
+                      autoComplete="off"
+                      spellCheck="false"
+                      aria-invalid={touched && !isValidToken}
+                      aria-describedby="tokenHelp"
+                      className="h-12 min-w-0 flex-1 bg-transparent px-3 font-mono text-sm font-black tracking-wide text-slate-900 outline-none placeholder:text-[11px] placeholder:text-slate-400 sm:h-14 sm:px-4 sm:text-lg"
+                    />
+                    {inputValue && (
+                      <button
+                        type="button"
+                        onClick={() => setInputValue("")}
+                        aria-label="Clear number"
+                        className="px-2.5 text-slate-400 hover:text-slate-700 sm:px-3"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {touched && !isValidToken && (
+                    <p
+                      role="alert"
+                      className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-rose-600"
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      Enter at least 8 characters.
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  aria-busy={loading}
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-xs font-black text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:w-auto sm:min-w-[150px] sm:rounded-2xl"
+                >
+                  {loading ? (
+                    <>
+                      <Gauge className="h-4 w-4 animate-spin" />
+                      <span>Checking…</span>
+                    </>
+                  ) : (
+                    <>
+                      <ScanFace className="h-4 w-4" />
+                      <span className="sm:hidden">Audit</span>
+                      <span className="hidden sm:inline">Start audit</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-3 flex items-center gap-2">
+              <p className="shrink-0 text-[10px] font-black text-slate-500">
+                Try sample
+              </p>
+              <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+                {SAMPLES.map((sample) => (
+                  <button
+                    key={sample}
+                    type="button"
+                    onClick={() => runGlobalAudit(sample)}
+                    className="flex min-w-0 items-center justify-between gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-left transition hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  >
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <Search className="h-3 w-3 shrink-0 text-slate-400" />
+                      <span className="truncate font-mono text-[10px] font-bold text-slate-700">
+                        {sample}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-white px-1.5 py-0.5 text-[8px] font-black text-slate-500">
+                      {sample.startsWith("DL") ? "DL" : "RC"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Vehicle Modal with 9-Point Audit */}
+      {step === "vehicle" && activeResult && (
+        <ResponsiveResultSheet
+          eyebrow="Vehicle audit"
+          title={resultTitle}
+          onClose={returnToSearch}
+        >
+          <VehicleResult
+            data={activeResult}
+            copied={copied}
+            onCopy={handleCopy}
+            onProtectedAction={handleProtectedAction}
+            onReset={returnToSearch}
+            loading={loading}
+          />
+        </ResponsiveResultSheet>
+      )}
+
+      {/* DL Modal with 5-Point Audit */}
+      {step === "dl" && activeResult && (
+        <ResponsiveResultSheet
+          eyebrow="Driver audit"
+          title={resultTitle}
+          onClose={returnToSearch}
+        >
+          <DriverResult
+            data={activeResult}
+            onProtectedAction={handleProtectedAction}
+            onReset={returnToSearch}
+            loading={loading}
+          />
+        </ResponsiveResultSheet>
+      )}
+
+      {/* Inline verify step — same drawer as the audit result the user
+          was just looking at (eyebrow/title carry over via otpReturnStep),
+          so this reads as the next screen in one continuous action, not
+          a separate login popup. Cancel returns to that same result. */}
+      {step === "otp" && (
+        <ResponsiveResultSheet
+          eyebrow={resultEyebrow}
+          title={resultTitle}
+          onClose={() => setStep(otpReturnStep)}
+          closeLabel="Cancel"
+        >
+          <form onSubmit={verifyOtp} className="mx-auto max-w-sm space-y-4">
+            <div className="text-center">
+              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600">
+                <Lock className="h-5 w-5" />
+              </div>
+              <h3 className="mt-3 text-base font-black text-slate-950">
+                Verify to continue
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                {activeIntentCopy
+                  ? activeIntentCopy.authMessage(challanAmount)
+                  : "Enter OTP to continue this action."}{" "}
+                This also logs you into your account.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-center text-[11px] font-bold text-blue-800">
+              Demo OTP:{" "}
+              <span className="font-mono text-blue-950 underline">123456</span>
+            </div>
+
+            <div>
+              <input
+                id="otpInput"
+                value={otp}
+                onChange={(event) => {
+                  setOtp(event.target.value.replace(/\D/g, "").slice(0, 6));
+                  setOtpError("");
+                }}
+                placeholder="123456"
+                inputMode="numeric"
+                autoFocus
+                className="h-12 w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 text-center font-mono text-lg font-black tracking-[0.45em] text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
+              />
+              {otpError && (
+                <p className="mt-1.5 text-center text-[10px] font-bold text-rose-600">
+                  {otpError}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setStep(otpReturnStep)}
+                className="h-11 flex-1 rounded-xl border border-slate-200 bg-white text-xs font-black text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6}
+                className="h-11 flex-[2] rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? "Verifying…" : "Verify & Continue"}
+              </button>
+            </div>
+          </form>
+        </ResponsiveResultSheet>
+      )}
+
+      {/* In-sheet Action Screen — handles both challan payment and DL
+          renewal, right here in the same drawer the user started in,
+          whether they arrived already authenticated or straight after
+          OTP verification. Once authenticated, dismissing this sheet
+          (backdrop / X / Cancel) hands off to the account shell instead
+          of dropping back to the guest audit result behind it. */}
+      {step === "action" && activeIntentType === "challan_settlement" && activeVehicleData && (
+        <ResponsiveResultSheet
+          eyebrow={activeIntentCopy.sheetEyebrow}
+          title={resultTitle}
+          onClose={() => closeActionSheet("vehicle")}
+          closeLabel="Cancel"
+        >
+          <div className="mx-auto max-w-sm space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-100 text-emerald-700">
+                  <IndianRupee className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">
+                    Challan settlement
+                  </p>
+                  <p className="text-xl font-mono font-black text-slate-950">
+                    ₹{challanAmount.toLocaleString("en-IN")}.00
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={completeChallanPayment}
+              disabled={loading}
+              className="h-11 w-full rounded-xl bg-emerald-600 text-xs font-black text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {loading ? "Processing…" : "Confirm & pay"}
+            </button>
+          </div>
+        </ResponsiveResultSheet>
+      )}
+
+      {step === "action" && activeIntentType === "dl_renew" && activeDriverData && (
+        <ResponsiveResultSheet
+          eyebrow={activeIntentCopy.sheetEyebrow}
+          title={resultTitle}
+          onClose={() => closeActionSheet("dl")}
+          closeLabel="Cancel"
+        >
+          <div className="mx-auto max-w-sm space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-purple-200 bg-purple-100 text-purple-700">
+                  <ScanFace className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">
+                    Renewing licence
+                  </p>
+                  <p className="font-mono text-sm font-black text-slate-950">
+                    {activeDriverData.dlNumber}
+                  </p>
+                  <p className="mt-0.5 text-[11px] font-bold text-slate-600">
+                    {activeDriverData.licenceClass || "LMV / MCWG"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={completeDlRenewal}
+              disabled={loading}
+              className="h-11 w-full rounded-xl bg-emerald-600 text-xs font-black text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {loading ? "Submitting…" : "Confirm & submit application"}
+            </button>
+          </div>
+        </ResponsiveResultSheet>
+      )}
+
+      {/* In-Drawer Success — same drawer the user started in. Closing it
+          (X, backdrop tap, or the primary button) is the one moment we
+          hand off to the app shell and land the user in the Account
+          Dashboard, already on the secured/authenticated session. */}
+      {step === "action_success" && (
+        <ResponsiveResultSheet
+          eyebrow="Completed"
+          title={resultTitle}
+          onClose={finishAndGoToAccount}
+          closeLabel="Back to main screen"
+        >
+          <div className="mx-auto max-w-sm space-y-4 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-100 text-emerald-700">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-slate-950">
+                Action Completed Successfully
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                {activeIntentCopy?.successDetail || "Your account is logged in."}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-left">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Document ID
+                </span>
+                <span className="font-mono text-xs font-black text-slate-950">
+                  {activeIntentType === "dl_renew"
+                    ? activeDriverData?.dlNumber
+                    : activeVehicleData?.vehicleNumber}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-200 pt-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Security status
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-700">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Active
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={finishAndGoToAccount}
+              className="h-11 w-full rounded-xl bg-blue-600 text-xs font-black text-white hover:bg-blue-700"
+            >
+              Back to main screen
+            </button>
+
+            {activeIntentType === "dl_renew" && (
+              <button
+                type="button"
+                onClick={() => goToLearnHub("2.2.3")}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white text-xs font-black text-slate-700 hover:bg-slate-50"
+              >
+                Learn more about DL renewal in Learn Hub
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={returnToSearch}
+              className="inline-flex items-center gap-2 px-1 text-xs font-bold text-slate-500 hover:text-slate-900"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Audit another number
+            </button>
+          </div>
+        </ResponsiveResultSheet>
+      )}
     </section>
   );
 }

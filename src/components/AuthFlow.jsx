@@ -17,41 +17,39 @@ import { Input } from "./ui/input";
 const PERSONA_IDENTIFIERS = {
   ananyaSharma: {
     phone: "9876547812",
-    aadhaar: "234567891234",
     pan: "ANSPS1234A",
   },
   rameshSrivastava: {
     phone: "9812345670",
-    aadhaar: "345678912345",
     pan: "RMSPS5678B",
     dl: "UP15420220034521",
   },
   surajVerma: {
     phone: "9911223344",
-    aadhaar: "456789123456",
     pan: "SRVPV9012C",
   },
   rajeshKumar: {
     phone: "9876543456",
-    aadhaar: "567891234567",
     pan: "RJKPK3456D",
     dl: "DL1420240098765",
   },
   rahulMalhotra: {
     phone: "9955667788",
-    aadhaar: "678912345678",
     pan: "RHLPM7890E",
     dl: "LL16202600445",
   },
 };
 
+// SAFE PERSONAS BUILDER (Prevents crashes if MOCK_SYSTEM_DB.users is undefined)
 const PERSONAS = Object.fromEntries(
   Object.entries(PERSONA_IDENTIFIERS).map(([userId, identifiers]) => [
     userId,
     {
       kind: "existing",
       userId,
-      name: MOCK_SYSTEM_DB.users[userId].fullName,
+      name:
+        MOCK_SYSTEM_DB?.users?.[userId]?.fullName ||
+        userId.replace(/([A-Z])/g, " $1").trim(),
       identifiers,
     },
   ]),
@@ -63,10 +61,10 @@ const FIELD_ICON = {
   pan: Fingerprint,
   dl: CreditCard,
 };
-const MOCK_OTP = "1234";
+const MOCK_OTP = "123456";
 
 function detectType(raw) {
-  const value = raw.replace(/\s/g, "");
+  const value = String(raw || "").replace(/\s/g, "");
   if (/^[6-9]\d{9}$/.test(value)) return "phone";
   if (/^\d{12}$/.test(value)) return "aadhaar";
   if (/^[A-Za-z]{5}\d{4}[A-Za-z]$/.test(value)) return "pan";
@@ -75,31 +73,36 @@ function detectType(raw) {
 }
 
 function findPersona(raw) {
-  const value = raw.replace(/\s/g, "").toUpperCase();
+  const value = String(raw || "").replace(/\s/g, "").toUpperCase();
   if (!value) return null;
   return (
     Object.values(PERSONAS).find((persona) =>
-      Object.values(persona.identifiers).some(
-        (id) => id.replace(/\s/g, "").toUpperCase() === value,
+      Object.values(persona?.identifiers || {}).some(
+        (id) => String(id).replace(/\s/g, "").toUpperCase() === value,
       ),
     ) ?? null
   );
 }
 
 function buildProfile(userId) {
-  const user = MOCK_SYSTEM_DB.users[userId] ?? MOCK_SYSTEM_DB.users.ananyaSharma;
+  // Safe Fallback chaining to prevent TypeError
+  const user =
+    MOCK_SYSTEM_DB?.users?.[userId] ||
+    MOCK_SYSTEM_DB?.users?.ananyaSharma ||
+    {};
+
   return {
-    fullName: user.fullName,
-    dob: user.dob,
-    address: user.address,
-    registeredMobile: user.mobileMasked,
-    avatarSeed: user.avatarSeed,
-    personaTag: user.personaTag,
+    fullName: user.fullName || "Demo User",
+    dob: user.dob || "1995-01-01",
+    address: user.address || "Noida, UP",
+    registeredMobile: user.mobileMasked || "98******12",
+    avatarSeed: user.avatarSeed || "default",
+    personaTag: user.personaTag || "Citizen",
   };
 }
 
 export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
-  const t = copy[language] ?? copy.hinglish;
+  const t = copy?.[language] ?? copy?.hinglish ?? copy?.en ?? {};
 
   const [step, setStep] = useState("identify");
   const [value, setValue] = useState("");
@@ -112,17 +115,19 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
   const handleBack = () => {
     setError("");
     if (step === "otp") return setStep("identify");
-    onBack();
+    if (onBack) onBack();
   };
 
   const handleContinue = () => {
-    if (value.trim().length < 4) return setError(t.fieldRequired);
+    if (value.trim().length < 4)
+      return setError(t.fieldRequired || "This field is required");
+
     const matched = findPersona(value);
     setPersona(
       matched ?? {
         kind: "new",
         userId: "ananyaSharma",
-        name: PERSONAS.ananyaSharma.name,
+        name: PERSONAS?.ananyaSharma?.name || "Ananya Sharma",
         identifiers: { [detectedType ?? "phone"]: value },
       },
     );
@@ -132,18 +137,25 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
   };
 
   const handleVerify = () => {
-    if (otp !== MOCK_OTP) return setError(t.invalidOtp);
-    onAuthenticated({
-      kind: persona.kind,
-      userId: persona.userId,
-      profile: buildProfile(persona.userId),
-      method: detectedType ?? "phone",
-    });
+    if (otp !== MOCK_OTP)
+      return setError(t.invalidOtp || "Invalid OTP entered");
+
+    if (onAuthenticated && persona) {
+      onAuthenticated({
+        kind: persona.kind,
+        userId: persona.userId,
+        profile: buildProfile(persona.userId),
+        method: detectedType ?? "phone",
+      });
+    }
   };
 
   const fillFrom = (personaKey, field) => {
-    setValue(PERSONAS[personaKey].identifiers[field]);
-    setError("");
+    const targetValue = PERSONAS?.[personaKey]?.identifiers?.[field];
+    if (targetValue) {
+      setValue(targetValue);
+      setError("");
+    }
   };
 
   return (
@@ -152,9 +164,9 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
         <span className="auth-aside-icon">
           <ShieldCheck size={24} />
         </span>
-        <p className="eyebrow">{t.asideEyebrow}</p>
-        <h2>{t.asideHeading}</h2>
-        <p>{t.asideBody}</p>
+        <p className="eyebrow">{t.asideEyebrow || "Secure Access"}</p>
+        <h2>{t.asideHeading || "Citizen Verification"}</h2>
+        <p>{t.asideBody || "Enter registered details to proceed."}</p>
         <div className="auth-aside-steps">
           {(t.authSteps ?? t.steps ?? []).map((label, index) => (
             <span key={label}>
@@ -166,20 +178,23 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
 
       <div className="auth-card">
         <button className="auth-back" type="button" onClick={handleBack}>
-          <ChevronLeft size={18} /> {t.back}
+          <ChevronLeft size={18} /> {t.back || "Back"}
         </button>
 
         {step === "identify" && (
           <>
-            <h1 id="auth-title">{t.authTitle}</h1>
-            <p className="auth-intro">{t.authIntro}</p>
+            <h1 id="auth-title">{t.authTitle || "Identity Check"}</h1>
+            <p className="auth-intro">
+              {t.authIntro || "Enter mobile number, PAN, or DL number"}
+            </p>
 
             <label className="form-label" htmlFor="identity-value">
-              {t.identifyLabel}
+              {t.identifyLabel || "Enter Credential"}
               {detectedType && (
                 <span className="detected-pill">
                   {" "}
-                  · {t.detected}: {t.fieldLabels[detectedType]}
+                  · {t.detected || "Detected"}:{" "}
+                  {t.fieldLabels?.[detectedType] || detectedType}
                 </span>
               )}
             </label>
@@ -187,7 +202,7 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
               id="identity-value"
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              placeholder={t.placeholder}
+              placeholder={t.placeholder || "Mobile / PAN / DL Number"}
             />
             {error && (
               <p className="form-error" role="alert">
@@ -199,10 +214,11 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
               type="button"
               onClick={handleContinue}
             >
-              {t.continueBtn}
+              {t.continueBtn || "Continue"}
             </Button>
             <p className="auth-safe-line">
-              <ShieldCheck size={15} /> {t.safeLine}
+              <ShieldCheck size={15} />{" "}
+              {t.safeLine || "Protected sandbox system"}
             </p>
 
             <div className="identity-personas">
@@ -211,13 +227,15 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
                   <div className="identity-persona-head">
                     <span className="persona-tag">
                       <UserRound size={11} style={{ verticalAlign: "-2px" }} />{" "}
-                      {p.kind === "existing" ? t.existingUser : t.newUser}
+                      {p.kind === "existing"
+                        ? t.existingUser || "Existing User"
+                        : t.newUser || "New User"}
                     </span>
                     <b>{p.name}</b>
                   </div>
                   <div className="identity-chip-row">
-                    {Object.entries(p.identifiers).map(([field, id]) => {
-                      const Icon = FIELD_ICON[field];
+                    {Object.entries(p?.identifiers || {}).map(([field, id]) => {
+                      const Icon = FIELD_ICON[field] || Phone;
                       return (
                         <button
                           type="button"
@@ -230,7 +248,9 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
                       );
                     })}
                   </div>
-                  <p className="identity-hint">{t.tapHint}</p>
+                  <p className="identity-hint">
+                    {t.tapHint || "Tap any chip to autofill"}
+                  </p>
                 </div>
               ))}
             </div>
@@ -244,17 +264,19 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
             </span>
             <p className="eyebrow">
               {persona?.kind === "existing"
-                ? t.welcomeBack(persona.name)
-                : t.newRegistration}
+                ? t.welcomeBack?.(persona.name) || `Welcome back, ${persona.name}`
+                : t.newRegistration || "New Account Setup"}
             </p>
-            <h1>{t.otpTitle}</h1>
-            <p className="auth-intro">{t.otpIntro}</p>
+            <h1>{t.otpTitle || "Verify OTP"}</h1>
+            <p className="auth-intro">
+              {t.otpIntro || "Enter the 6-digit code sent to your credentials."}
+            </p>
 
             <div className="demo-credential">
               <span>
-                {t.demoOtpLabel}: <b>{MOCK_OTP}</b>
+                {t.demoOtpLabel || "Demo OTP"}: <b>{MOCK_OTP}</b>
               </span>
-              <small>{t.reviewerOnly}</small>
+              <small>{t.reviewerOnly || "(For Testing)"}</small>
             </div>
 
             <label className="form-label" htmlFor="otp-value">
@@ -264,12 +286,12 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
               id="otp-value"
               className="otp-input"
               inputMode="numeric"
-              maxLength="4"
+               maxLength="6"
               value={otp}
               onChange={(event) =>
                 setOtp(event.target.value.replace(/\D/g, ""))
               }
-              placeholder="1234"
+               placeholder="123456"
             />
             {error && (
               <p className="form-error" role="alert">
@@ -281,10 +303,11 @@ export function AuthFlow({ language = "en", onAuthenticated, onBack }) {
               type="button"
               onClick={handleVerify}
             >
-              {t.verifyBtn}
+              {t.verifyBtn || "Verify & Proceed"}
             </Button>
             <p className="auth-safe-line">
-              <ShieldCheck size={15} /> {t.safeLine}
+              <ShieldCheck size={15} />{" "}
+              {t.safeLine || "Protected sandbox system"}
             </p>
           </>
         )}

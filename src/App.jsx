@@ -555,8 +555,16 @@ function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [language, setLanguage] = useState("hinglish");
   const [session, setSession] = useState(null);
+  const [isAccountProfileOpen, setIsAccountProfileOpen] = useState(false);
   const [currentNode, setCurrentNode] = useState("1.1");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  // Shared "what's already been settled" ledger — the single source of
+  // truth both Hero (guest audit drawer) and AccountDashboard read from,
+  // so a challan paid inside Hero's own drawer is immediately reflected
+  // in the account shell too, without either component needing to know
+  // about the other's local state.
+  const [paidVehicleNumbers, setPaidVehicleNumbers] = useState([]);
 
   const [locationData, setLocationData] = useState({
     stateKey: "up",
@@ -661,13 +669,44 @@ function App() {
     });
   };
 
-  const startSession = (newSession) => {
+  // navigateTo is optional on purpose: Hero calls this straight after OTP
+  // verification and does NOT pass a second argument, so the session gets
+  // created but the app stays exactly where the user was (inside Hero's
+  // drawer) so the in-sheet success step can show. AuthFlow's standalone
+  // sign-in DOES pass "account", since that flow's whole job is to land
+  // the user in the account shell.
+  const startSession = (newSession, navigateTo) => {
     setSession(newSession);
+    setIsAccountProfileOpen(false);
 
-    window.scrollTo({
-      top: 0,
-      behavior: "auto",
-    });
+    if (navigateTo) {
+      setActiveView(navigateTo);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    }
+  };
+
+  // Called by Hero the moment a protected action (challan payment / DL
+  // renewal) actually finishes inside its own drawer — NOT when the user
+  // later taps "Back to main screen". This keeps the account shell in
+  // sync immediately: the shared paid-vehicle ledger is updated, and the
+  // session's pendingAction is cleared so the account shell never shows
+  // a stale "ready to continue" prompt for work that's already done.
+  const completeGuestAction = (result) => {
+    if (result?.type === "challan_settlement" && result.vehicleNumber) {
+      setPaidVehicleNumbers((current) =>
+        current.includes(result.vehicleNumber)
+          ? current
+          : [...current, result.vehicleNumber],
+      );
+    }
+
+    setSession((current) =>
+      current ? { ...current, pendingAction: null } : current,
+    );
   };
 
   useEffect(() => {
@@ -724,6 +763,7 @@ function App() {
 
       if (event.key === "Escape") {
         setIsMenuOpen(false);
+        setIsAccountProfileOpen(false);
       }
     };
 
@@ -744,7 +784,7 @@ function App() {
             <button
               type="button"
               className="brand-lockup"
-              onClick={() => changeView("home")}
+              onClick={() => changeView(session ? "account" : "home")}
               aria-label="Parivahan Saathi home"
             >
               <span className="brand-mark">
@@ -772,7 +812,7 @@ function App() {
                   <button
                     type="button"
                     className="session-chip desktop-only"
-                    onClick={() => changeView("home")}
+                    onClick={() => changeView("account")}
                   >
                     <UserRound size={16} aria-hidden="true" />
 
@@ -784,10 +824,18 @@ function App() {
                   <button
                     type="button"
                     className="icon-button profile-icon-button mobile-only"
-                    onClick={() => changeView("home")}
+                    onClick={() => {
+                      changeView("account");
+                      setIsAccountProfileOpen(true);
+                    }}
                     aria-label={session.profile?.fullName || "Profile"}
                   >
-                    <CircleUserRound size={22} aria-hidden="true" />
+                    <span className="account-topbar-avatar" aria-hidden="true">
+                      {(session.profile?.fullName || "Citizen")
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
                   </button>
                 </>
               ) : (
@@ -835,19 +883,23 @@ function App() {
         </div>
       </header>
 
-      {session ? (
+      {activeView === "account" && session ? (
         <AccountDashboard
           session={session}
           language={language}
-          onSignOut={() => {
+          isProfileOpen={isAccountProfileOpen}
+          onCloseProfile={() => setIsAccountProfileOpen(false)}
+          paidVehicleNumbers={paidVehicleNumbers}
+          onLogout={() => {
             setSession(null);
+            setIsAccountProfileOpen(false);
             changeView("home");
           }}
         />
       ) : activeView === "auth" ? (
         <AuthFlow
           language={language}
-          onAuthenticated={startSession}
+          onAuthenticated={(newSession) => startSession(newSession, "account")}
           onBack={() => changeView("home")}
         />
       ) : (
@@ -965,6 +1017,10 @@ function App() {
                   language={language}
                   copy={t.home}
                   onSignIn={() => changeView("auth")}
+                  onAuthenticated={startSession}
+                  onActionCompleted={completeGuestAction}
+                  isAuthenticated={Boolean(session)}
+                  onGoToAccount={() => changeView("account")}
                   setCurrentNode={setCurrentNode}
                   changeView={changeView}
                 />
@@ -1075,7 +1131,17 @@ function App() {
   );
 }
 
-function HomeView({ language, copy, onSignIn, setCurrentNode, changeView }) {
+function HomeView({
+  language,
+  copy,
+  onSignIn,
+  onAuthenticated,
+  onActionCompleted,
+  isAuthenticated,
+  onGoToAccount,
+  setCurrentNode,
+  changeView,
+}) {
   const [openFaq, setOpenFaq] = useState(null);
 
   const sarathiServices = Array.isArray(copy?.sarathiServices)
@@ -1121,9 +1187,26 @@ function HomeView({ language, copy, onSignIn, setCurrentNode, changeView }) {
     setOpenFaq((current) => (current === index ? null : index));
   };
 
+  const focusHero = () => {
+    document.getElementById("hero-lookup")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <div className="content-grid home-page">
-      <Hero language={language} onStartService={onSignIn} />
+      
+      <Hero
+        language={language}
+        onStartService={onSignIn}
+        onAuthenticated={onAuthenticated}
+        onActionCompleted={onActionCompleted}
+        isAuthenticated={isAuthenticated}
+        onGoToAccount={onGoToAccount}
+        setCurrentNode={setCurrentNode}
+        changeView={changeView}
+      />
 
       <section className="persona-section">
         <div className="section-heading-row">
